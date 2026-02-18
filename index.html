@@ -171,7 +171,7 @@
   <div class="dz" id="dz">
     <div class="ic">📂</div>
     <p>Drop audio here or <strong>browse</strong></p>
-    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — any size</div>
+    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — up to 25 MB direct, larger files auto-split</div>
   </div>
   <input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4" />
 
@@ -217,136 +217,151 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Shim CommonJS globals so UMD bundles take the browser path -->
-<script>var exports = {}; var module = { exports: exports };</script>
-<!-- Load ffmpeg.wasm UMD builds (classic workers, no cross-origin issues) -->
-<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
-<script>var FFmpegWASM = module.exports; exports = {}; module = { exports: exports };</script>
-<script src="https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js"></script>
-<script>var FFmpegUtil = module.exports;</script>
+<!-- No external dependencies — uses Web Audio API for decode/split/encode -->
 
 <script>
 // ── Globals ──
 var $ = function(id) { return document.getElementById(id); };
-var WHISPER_MAX = 24 * 1024 * 1024;
-var SEG_MINUTES = 10;
+var WHISPER_MAX = 24 * 1024 * 1024;   // 24 MB (stay under Whisper's 25 MB limit)
+var SEG_DURATION = 10 * 60;            // 10 minutes per segment
 var file = null;
-var ffmpegInstance = null;
 
-// ── FFmpeg (UMD build) ──
+// ── Whisper-supported formats (send directly, no conversion needed) ──
 
-async function getFFmpeg() {
-  if (ffmpegInstance) return ffmpegInstance;
+var WHISPER_FORMATS = ['mp3','mp4','mpeg','mpga','m4a','wav','webm','flac','ogg'];
 
-  prg(5, 'Loading audio engine (first time only, ~30 MB)…');
-
-  var ffmpeg = new FFmpegWASM.FFmpeg();
-
-  ffmpeg.on('log', function(evt) {
-    if (evt.message && evt.message.includes('time=')) {
-      var match = evt.message.match(/time=(\d+:\d+:\d+)/);
-      if (match) prg(null, 'Processing… ' + match[1]);
-    }
-  });
-
-  prg(8, 'Downloading core files…');
-
-  // Fetch ALL assets as blob URLs so the blob-origin worker can load them
-  var [workerResp, coreResp, wasmResp] = await Promise.all([
-    fetch('https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/814.ffmpeg.js'),
-    fetch('https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js'),
-    fetch('https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm')
-  ]);
-
-  var workerBlob = new Blob([await workerResp.text()], { type: 'text/javascript' });
-  var coreBlob   = new Blob([await coreResp.text()],   { type: 'text/javascript' });
-  var wasmBlob   = new Blob([await wasmResp.arrayBuffer()], { type: 'application/wasm' });
-
-  var workerURL = URL.createObjectURL(workerBlob);
-  var coreURL   = URL.createObjectURL(coreBlob);
-  var wasmURL   = URL.createObjectURL(wasmBlob);
-
-  prg(15, 'Initializing audio engine…');
-
-  await ffmpeg.load({
-    coreURL:        coreURL,
-    wasmURL:        wasmURL,
-    classWorkerURL: workerURL
-  });
-
-  ffmpegInstance = ffmpeg;
-  return ffmpeg;
+function isWhisperFormat(filename) {
+  var ext = (filename || '').split('.').pop().toLowerCase();
+  return WHISPER_FORMATS.indexOf(ext) >= 0;
 }
 
 
-// ── Convert any audio → mp3 segments for Whisper ──
+// ── Web Audio: decode → resample → segment → WAV encode ──
 
 async function prepareSegments(inputFile) {
-  var ffmpeg = await getFFmpeg();
+  // Small file in a Whisper-friendly format → send as-is
+  if (inputFile.size <= WHISPER_MAX && isWhisperFormat(inputFile.name)) {
+    return [inputFile];
+  }
 
-  var ext = getExt(inputFile.name);
-  var inputName = 'input' + ext;
+  prg(5, 'Decoding audio…');
+  var arrayBuffer = await inputFile.arrayBuffer();
+  var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  var decoded;
+  try {
+    decoded = await audioCtx.decodeAudioData(arrayBuffer);
+  } catch (err) {
+    throw new Error('Browser cannot decode this format. Try converting to mp3 first.');
+  } finally {
+    audioCtx.close();
+  }
 
-  prg(10, 'Loading file into converter…');
-  var fileData = await FFmpegUtil.fetchFile(inputFile);
-  await ffmpeg.writeFile(inputName, fileData);
+  // Resample to 16 kHz mono (~1.92 MB/min as 16-bit WAV)
+  prg(12, 'Resampling to 16 kHz mono…');
+  var mono16k = await resampleAudio(decoded, 16000, 1);
 
-  // Convert to single mp3: mono, 16kHz, 48kbps (~0.36 MB/min)
-  prg(15, 'Converting to mp3…');
-  await ffmpeg.exec([
-    '-i', inputName,
-    '-ac', '1',
-    '-ar', '16000',
-    '-b:a', '48k',
-    '-y', 'full.mp3'
-  ]);
-
-  // Check if single mp3 fits under Whisper limit
-  var fullData = await ffmpeg.readFile('full.mp3');
-  var fullSize = fullData.byteLength || fullData.length;
-
-  if (fullSize <= WHISPER_MAX) {
-    var blob = new Blob([fullData.buffer || fullData], { type: 'audio/mpeg' });
-    await cleanup(ffmpeg, [inputName, 'full.mp3']);
-    return [new File([blob], 'audio.mp3', { type: 'audio/mpeg' })];
+  // Single WAV fits? (header 44 bytes + samples × 2 bytes)
+  var wavSize = 44 + mono16k.length * 2;
+  if (wavSize <= WHISPER_MAX) {
+    prg(20, 'Encoding WAV…');
+    return [new File([audioBufferToWav(mono16k)], 'audio.wav', { type: 'audio/wav' })];
   }
 
   // Split into time-based segments
-  prg(25, 'Splitting into segments…');
-  await ffmpeg.exec([
-    '-i', 'full.mp3',
-    '-f', 'segment',
-    '-segment_time', String(SEG_MINUTES * 60),
-    '-c', 'copy',
-    '-y', 'seg_%03d.mp3'
-  ]);
-
+  var sampleRate  = mono16k.sampleRate;
+  var segSamples  = SEG_DURATION * sampleRate;
+  var totalSamples = mono16k.length;
   var segments = [];
-  for (var i = 0; i < 999; i++) {
-    var segName = 'seg_' + String(i).padStart(3, '0') + '.mp3';
-    try {
-      var segData = await ffmpeg.readFile(segName);
-      var segBlob = new Blob([segData.buffer || segData], { type: 'audio/mpeg' });
-      segments.push(new File([segBlob], segName, { type: 'audio/mpeg' }));
-      await ffmpeg.deleteFile(segName);
-    } catch (e) {
-      break;
-    }
+  var offset = 0;
+  var idx = 0;
+
+  while (offset < totalSamples) {
+    var end = Math.min(offset + segSamples, totalSamples);
+    idx++;
+    prg(20 + Math.round((offset / totalSamples) * 50),
+        'Encoding segment ' + idx + '…');
+
+    var sliced = sliceAudioBuffer(mono16k, offset, end);
+    var wavBlob = audioBufferToWav(sliced);
+    segments.push(new File([wavBlob], 'seg_' + idx + '.wav', { type: 'audio/wav' }));
+    offset = end;
   }
 
-  await cleanup(ffmpeg, [inputName, 'full.mp3']);
   return segments;
 }
 
-async function cleanup(ffmpeg, names) {
-  for (var i = 0; i < names.length; i++) {
-    try { await ffmpeg.deleteFile(names[i]); } catch (e) {}
-  }
+async function resampleAudio(audioBuffer, targetRate, targetChannels) {
+  var frames = Math.ceil(audioBuffer.duration * targetRate);
+  var offlineCtx = new OfflineAudioContext(targetChannels, frames, targetRate);
+  var src = offlineCtx.createBufferSource();
+  src.buffer = audioBuffer;
+  src.connect(offlineCtx.destination);
+  src.start(0);
+  return await offlineCtx.startRendering();
 }
 
-function getExt(filename) {
-  var m = filename.match(/(\.[^.]+)$/);
-  return m ? m[1].toLowerCase() : '.bin';
+function sliceAudioBuffer(buf, startSample, endSample) {
+  var len = endSample - startSample;
+  var sliced = new AudioBuffer({
+    numberOfChannels: buf.numberOfChannels,
+    length: len,
+    sampleRate: buf.sampleRate
+  });
+  for (var ch = 0; ch < buf.numberOfChannels; ch++) {
+    var src = buf.getChannelData(ch);
+    var dst = sliced.getChannelData(ch);
+    // Fast typed-array copy
+    dst.set(src.subarray(startSample, endSample));
+  }
+  return sliced;
+}
+
+function audioBufferToWav(buf) {
+  var numCh   = buf.numberOfChannels;
+  var rate    = buf.sampleRate;
+  var samples = buf.length;
+  var bps     = 16;
+  var block   = numCh * (bps / 8);
+  var dataLen = samples * block;
+  var total   = 44 + dataLen;
+
+  var ab   = new ArrayBuffer(total);
+  var view = new DataView(ab);
+
+  // ── RIFF / WAV header ──
+  _wStr(view, 0,  'RIFF');
+  view.setUint32(4,  total - 8, true);
+  _wStr(view, 8,  'WAVE');
+  _wStr(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);            // fmt chunk size
+  view.setUint16(20, 1,  true);            // PCM
+  view.setUint16(22, numCh, true);
+  view.setUint32(24, rate, true);
+  view.setUint32(28, rate * block, true);   // byte rate
+  view.setUint16(32, block, true);
+  view.setUint16(34, bps, true);
+  _wStr(view, 36, 'data');
+  view.setUint32(40, dataLen, true);
+
+  // ── Interleaved 16-bit PCM samples ──
+  var chData = [];
+  for (var c = 0; c < numCh; c++) chData.push(buf.getChannelData(c));
+
+  var off = 44;
+  for (var i = 0; i < samples; i++) {
+    for (var c = 0; c < numCh; c++) {
+      var s = chData[c][i];
+      s = s < -1 ? -1 : s > 1 ? 1 : s;
+      view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      off += 2;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+
+function _wStr(view, offset, str) {
+  for (var i = 0; i < str.length; i++)
+    view.setUint8(offset + i, str.charCodeAt(i));
 }
 
 
@@ -416,7 +431,7 @@ async function transcribe() {
   $('prog').classList.add('on');
 
   try {
-    // Convert & split with ffmpeg (handles any format, any size)
+    // Decode, resample, and segment if needed (Web Audio API — no dependencies)
     var segments = await prepareSegments(file);
     prg(30, segments.length + ' segment' + (segments.length > 1 ? 's' : '') + ' ready');
 
