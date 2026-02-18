@@ -30,14 +30,12 @@
   body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; padding:2rem 1.5rem; }
   .app { max-width:800px; margin:0 auto; }
 
-  /* ── Top bar ── */
   .top { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.75rem; }
   .logo { display:flex; align-items:center; gap:0.6rem; font-weight:700; font-size:1.15rem; letter-spacing:-0.01em; }
   .logo-mark { width:32px; height:32px; background:var(--blue); border-radius:8px; display:grid; place-items:center; font-size:0.85rem; }
   .top-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-2); padding:0.45rem 0.85rem; border-radius:var(--r); cursor:pointer; font:500 0.82rem var(--sans); transition:0.15s; }
   .top-btn:hover { border-color:var(--blue); color:var(--text); }
 
-  /* ── Panel ── */
   .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.4rem; margin-bottom:1.2rem; }
   .panel-label { font:600 0.72rem var(--sans); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); margin-bottom:0.9rem; }
 
@@ -48,15 +46,14 @@
   .field { margin-bottom:1rem; }
   .field:last-child { margin-bottom:0; }
   .field label { display:block; font:500 0.8rem var(--sans); color:var(--text-2); margin-bottom:0.3rem; }
-  .field input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.55rem 0.75rem; border-radius:6px; font:400 0.82rem var(--mono); outline:none; transition:border-color 0.15s; }
-  .field input:focus { border-color:var(--blue); }
+  .field input, .field select { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.55rem 0.75rem; border-radius:6px; font:400 0.82rem var(--mono); outline:none; transition:border-color 0.15s; }
+  .field input:focus, .field select:focus { border-color:var(--blue); }
   .field .hint { font-size:0.72rem; color:var(--text-3); margin-top:0.25rem; }
   .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
 
   .save-cfg { margin-top:0.5rem; padding:0.5rem 1.1rem; background:var(--blue-dim); color:var(--blue); border:1px solid transparent; border-radius:var(--r); font:600 0.82rem var(--sans); cursor:pointer; transition:0.15s; }
   .save-cfg:hover { background:var(--blue); color:#fff; }
 
-  /* ── Drop zone ── */
   .dz { border:2px dashed var(--border); border-radius:var(--rl); padding:2.5rem 1.5rem; text-align:center; cursor:pointer; transition:0.2s; background:var(--surface); }
   .dz:hover,.dz.over { border-color:var(--blue); background:var(--blue-dim); }
   .dz .ic { font-size:2rem; margin-bottom:0.5rem; opacity:0.5; }
@@ -65,7 +62,6 @@
   .dz .fmt { font:400 0.72rem var(--mono); color:var(--text-3); margin-top:0.4rem; }
   input[type="file"] { display:none; }
 
-  /* ── File badge ── */
   .fb { display:none; align-items:center; gap:0.8rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:0.75rem 1rem; margin-top:1rem; }
   .fb.on { display:flex; }
   .fb .info { flex:1; }
@@ -74,14 +70,12 @@
   .fb .rm { background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; transition:0.15s; }
   .fb .rm:hover { color:var(--red); background:var(--red-dim); }
 
-  /* ── Tab name input ── */
   .tab-name-row { display:none; align-items:center; gap:0.6rem; margin-top:0.8rem; }
   .tab-name-row.on { display:flex; }
   .tab-name-row label { font:500 0.8rem var(--sans); color:var(--text-2); white-space:nowrap; }
   .tab-name-row input { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.7rem; border-radius:6px; font:400 0.85rem var(--sans); outline:none; }
   .tab-name-row input:focus { border-color:var(--blue); }
 
-  /* ── Buttons ── */
   .btn-go { width:100%; margin-top:1rem; padding:0.8rem; background:var(--blue); color:#fff; border:none; border-radius:var(--r); font:700 0.9rem var(--sans); cursor:pointer; transition:0.15s; }
   .btn-go:hover:not(:disabled) { filter:brightness(1.12); transform:translateY(-1px); }
   .btn-go:disabled { opacity:0.35; cursor:not-allowed; }
@@ -93,14 +87,12 @@
   .btn-out { padding:0.6rem 1rem; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--r); font:500 0.82rem var(--sans); cursor:pointer; transition:0.15s; white-space:nowrap; }
   .btn-out:hover { border-color:var(--blue); }
 
-  /* ── Progress ── */
   .prog { display:none; margin-top:1.25rem; }
   .prog.on { display:block; }
   .prog-track { width:100%; height:5px; background:var(--surface-2); border-radius:3px; overflow:hidden; }
   .prog-fill { height:100%; width:0%; background:var(--blue); border-radius:3px; transition:width 0.35s ease; }
   .prog-msg { font:400 0.78rem var(--mono); color:var(--text-2); margin-top:0.4rem; }
 
-  /* ── Editor ── */
   .ed { display:none; margin-top:1.75rem; }
   .ed.on { display:block; animation:fadeIn 0.3s ease; }
   .ed-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem; }
@@ -111,12 +103,10 @@
   .ed-actions { display:flex; gap:0.6rem; margin-top:1rem; }
   .ed-row2 { display:flex; gap:0.5rem; margin-top:0.6rem; justify-content:flex-end; }
 
-  /* ── Tab list ── */
   .tab-list { margin-top:0.8rem; }
   .tab-list .chip { display:inline-block; background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:0.3rem 0.7rem; border-radius:20px; font:400 0.75rem var(--sans); margin:0.2rem 0.3rem 0.2rem 0; }
   .tab-list .chip.new { border-color:var(--green); color:var(--green); }
 
-  /* ── Toast ── */
   .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface-2); border:1px solid var(--border); padding:0.7rem 1.4rem; border-radius:var(--r); font:500 0.85rem var(--sans); opacity:0; transition:0.25s ease; z-index:100; white-space:nowrap; pointer-events:none; }
   .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
   .toast.ok { border-color:var(--green); color:var(--green); }
@@ -152,7 +142,11 @@
     <div class="two-col">
       <div class="field">
         <label>Whisper Model</label>
-        <input type="text" id="model" value="whisper-1" />
+        <select id="model">
+          <option value="whisper-1">whisper-1</option>
+          <option value="gpt-4o-mini-transcribe">gpt-4o-mini-transcribe</option>
+          <option value="gpt-4o-transcribe">gpt-4o-transcribe</option>
+        </select>
       </div>
       <div class="field">
         <label>Language (optional)</label>
@@ -174,10 +168,10 @@
   </div>
 
   <!-- Upload -->
-  <div class="dz" id="dz" onclick="$('fi').click()">
+  <div class="dz" id="dz">
     <div class="ic">📂</div>
     <p>Drop audio here or <strong>browse</strong></p>
-    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4</div>
+    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — any size</div>
   </div>
   <input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4" />
 
@@ -190,7 +184,6 @@
     <button class="rm" onclick="clearFile()">&times;</button>
   </div>
 
-  <!-- Tab name -->
   <div class="tab-name-row" id="tabNameRow">
     <label>Tab name:</label>
     <input type="text" id="tabName" placeholder="Auto-generated from filename + timestamp" />
@@ -224,48 +217,152 @@
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+
+// ── Globals ──
 const $ = id => document.getElementById(id);
-const WHISPER_MAX = 24 * 1024 * 1024; // 24 MB hard limit per request
-const CHUNK_MINUTES = 10;             // split audio into 10-min segments
-const TARGET_RATE = 16000;            // 16 kHz mono — what Whisper uses internally (~1.9 MB/min as WAV)
+const WHISPER_MAX = 24 * 1024 * 1024;
+const SEG_MINUTES = 10;
 let file = null;
+let ffmpegInstance = null;
+
+// ── FFmpeg loader (single-threaded, no special headers needed) ──
+
+async function getFFmpeg() {
+  if (ffmpegInstance) return ffmpegInstance;
+
+  prg(5, 'Loading audio engine (first time only, ~30 MB)…');
+
+  const { FFmpeg } = await import(
+    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/esm/index.js'
+  );
+
+  ffmpegInstance = new FFmpeg();
+
+  ffmpegInstance.on('log', ({ message }) => {
+    // Surface ffmpeg progress messages
+    if (message.includes('time=')) {
+      const match = message.match(/time=(\d+:\d+:\d+)/);
+      if (match) prg(null, 'Processing… ' + match[1]);
+    }
+  });
+
+  await ffmpegInstance.load({
+    coreURL:  'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
+    wasmURL:  'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm',
+  });
+
+  return ffmpegInstance;
+}
+
+
+// ── Convert any audio → mp3 segments ready for Whisper ──
+
+async function prepareSegments(inputFile) {
+  const ffmpeg = await getFFmpeg();
+  const { fetchFile } = await import(
+    'https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'
+  );
+
+  const inputName = 'input' + getExt(inputFile.name);
+  prg(10, 'Loading file into converter…');
+  await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
+
+  // Step 1: Convert to single mp3, mono 16kHz (small & Whisper-friendly)
+  prg(15, 'Converting to mp3…');
+  await ffmpeg.exec([
+    '-i', inputName,
+    '-ac', '1',          // mono
+    '-ar', '16000',      // 16 kHz
+    '-b:a', '48k',       // 48 kbps — keeps files small (~0.36 MB/min)
+    '-y', 'full.mp3'
+  ]);
+
+  // Check if the single mp3 is small enough
+  const fullData = await ffmpeg.readFile('full.mp3');
+  const fullBlob = new Blob([fullData.buffer], { type: 'audio/mpeg' });
+
+  if (fullBlob.size <= WHISPER_MAX) {
+    // Single segment is fine
+    await cleanupFFmpegFiles(ffmpeg, [inputName, 'full.mp3']);
+    return [new File([fullBlob], 'audio.mp3', { type: 'audio/mpeg' })];
+  }
+
+  // Step 2: Split into time-based segments
+  prg(25, 'Splitting into segments…');
+  await ffmpeg.exec([
+    '-i', 'full.mp3',
+    '-f', 'segment',
+    '-segment_time', String(SEG_MINUTES * 60),
+    '-c', 'copy',        // no re-encode, just cut
+    '-y', 'seg_%03d.mp3'
+  ]);
+
+  // Collect all segment files
+  const segments = [];
+  for (let i = 0; i < 999; i++) {
+    const segName = 'seg_' + String(i).padStart(3, '0') + '.mp3';
+    try {
+      const segData = await ffmpeg.readFile(segName);
+      const segBlob = new Blob([segData.buffer], { type: 'audio/mpeg' });
+      segments.push(new File([segBlob], segName, { type: 'audio/mpeg' }));
+      // Clean up segment file from ffmpeg FS
+      await ffmpeg.deleteFile(segName);
+    } catch {
+      break; // No more segments
+    }
+  }
+
+  await cleanupFFmpegFiles(ffmpeg, [inputName, 'full.mp3']);
+  return segments;
+}
+
+async function cleanupFFmpegFiles(ffmpeg, names) {
+  for (const n of names) {
+    try { await ffmpeg.deleteFile(n); } catch {}
+  }
+}
+
+function getExt(filename) {
+  const m = filename.match(/(\.[^.]+)$/);
+  return m ? m[1].toLowerCase() : '.bin';
+}
+
 
 // ── Settings ──
-const CFGKEYS = ['apiKey','model','lang','scriptUrl','docId'];
+
+const CFGKEYS = ['apiKey', 'model', 'lang', 'scriptUrl', 'docId'];
 
 function loadCfg() {
-  CFGKEYS.forEach(k => { const v = localStorage.getItem('t_'+k); if(v) $(k).value = v; });
+  CFGKEYS.forEach(k => { const v = localStorage.getItem('t_' + k); if (v) $(k).value = v; });
 }
 
 function saveSettings() {
-  CFGKEYS.forEach(k => localStorage.setItem('t_'+k, $(k).value.trim()));
-  toast('Settings saved','ok');
+  CFGKEYS.forEach(k => localStorage.setItem('t_' + k, $(k).value.trim()));
+  toast('Settings saved', 'ok');
 }
 
 function toggleSettings() { $('settingsPanel').classList.toggle('open'); }
 
+
 // ── File handling ──
+
 const dz = $('dz');
+dz.addEventListener('click', () => $('fi').click());
 dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
 dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files.length) pick(e.dataTransfer.files[0]); });
-$('fi').addEventListener('change', e => { if(e.target.files.length) pick(e.target.files[0]); });
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files.length) pick(e.dataTransfer.files[0]); });
+$('fi').addEventListener('change', e => { if (e.target.files.length) pick(e.target.files[0]); });
 
 function pick(f) {
   file = f;
-  const mb = (f.size/1048576).toFixed(1);
+  const mb = (f.size / 1048576).toFixed(1);
   $('fn').textContent = f.name;
-  let meta = mb + ' MB';
-  if (f.size > WHISPER_MAX) meta += ' · will be split into segments for transcription';
-  $('fm').textContent = meta;
+  $('fm').textContent = mb + ' MB';
   $('fb').classList.add('on');
   $('tabNameRow').classList.add('on');
   $('goBtn').disabled = false;
-
-  // Pre-fill tab name from filename
-  const base = f.name.replace(/\.[^.]+$/, '');
-  $('tabName').value = base;
+  $('tabName').value = f.name.replace(/\.[^.]+$/, '');
 }
 
 function clearFile() {
@@ -275,95 +372,12 @@ function clearFile() {
   $('goBtn').disabled = true;
 }
 
-// ── Audio Helpers: decode → resample → WAV encode ──
-
-/** Read a File into an ArrayBuffer */
-function readFile(f) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = () => rej(new Error('Failed to read file'));
-    r.readAsArrayBuffer(f);
-  });
-}
-
-/** Decode any audio format the browser supports → AudioBuffer */
-async function decodeAudio(arrayBuffer) {
-  const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_RATE });
-  try {
-    const buf = await ctx.decodeAudioData(arrayBuffer);
-    return buf;
-  } finally {
-    ctx.close();
-  }
-}
-
-/** Downmix to mono Float32Array */
-function toMono(audioBuf) {
-  if (audioBuf.numberOfChannels === 1) return audioBuf.getChannelData(0);
-  const L = audioBuf.getChannelData(0);
-  const R = audioBuf.getChannelData(1);
-  const mono = new Float32Array(L.length);
-  for (let i = 0; i < L.length; i++) mono[i] = (L[i] + R[i]) / 2;
-  return mono;
-}
-
-/** Encode Float32 PCM as a 16-bit WAV file blob */
-function encodeWav(samples, sampleRate) {
-  const numSamples = samples.length;
-  const buffer = new ArrayBuffer(44 + numSamples * 2);
-  const view = new DataView(buffer);
-
-  // WAV header
-  const writeStr = (off, str) => { for(let i=0;i<str.length;i++) view.setUint8(off+i,str.charCodeAt(i)); };
-  writeStr(0, 'RIFF');
-  view.setUint32(4, 36 + numSamples * 2, true);
-  writeStr(8, 'WAVE');
-  writeStr(12, 'fmt ');
-  view.setUint32(16, 16, true);           // chunk size
-  view.setUint16(20, 1, true);            // PCM
-  view.setUint16(22, 1, true);            // mono
-  view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * 2, true); // byte rate
-  view.setUint16(32, 2, true);            // block align
-  view.setUint16(34, 16, true);           // bits per sample
-  writeStr(36, 'data');
-  view.setUint32(40, numSamples * 2, true);
-
-  // Convert float32 → int16
-  let offset = 44;
-  for (let i = 0; i < numSamples; i++) {
-    let s = Math.max(-1, Math.min(1, samples[i]));
-    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-    offset += 2;
-  }
-
-  return new Blob([buffer], { type: 'audio/wav' });
-}
-
-/** Split mono samples into time-based chunks, return array of WAV Files */
-function splitIntoChunks(monoSamples, sampleRate) {
-  const samplesPerChunk = CHUNK_MINUTES * 60 * sampleRate;
-  const totalChunks = Math.ceil(monoSamples.length / samplesPerChunk);
-  const chunks = [];
-
-  for (let i = 0; i < totalChunks; i++) {
-    const start = i * samplesPerChunk;
-    const end = Math.min(start + samplesPerChunk, monoSamples.length);
-    const slice = monoSamples.subarray(start, end);
-    const wav = encodeWav(slice, sampleRate);
-    chunks.push(new File([wav], `chunk_${i}.wav`, { type: 'audio/wav' }));
-  }
-
-  return chunks;
-}
-
 
 // ── Transcription ──
 
 async function transcribe() {
   const key = $('apiKey').value.trim();
-  if (!key) { toast('Add your OpenAI API key in Settings','err'); toggleSettings(); return; }
+  if (!key) { toast('Add your OpenAI API key in Settings', 'err'); toggleSettings(); return; }
   if (!file) return;
 
   $('goBtn').disabled = true;
@@ -371,118 +385,90 @@ async function transcribe() {
   $('prog').classList.add('on');
 
   try {
-    let text = '';
+    // Step 1: Convert & split with ffmpeg
+    const segments = await prepareSegments(file);
+    prg(30, `${segments.length} segment${segments.length > 1 ? 's' : ''} ready`);
 
-    // Step 1: Try sending the original file directly (works for small files in supported formats)
-    if (file.size <= WHISPER_MAX) {
-      prg(10, 'Sending to Whisper…');
-      try {
-        text = await callWhisper(file, key);
-        prg(100, 'Done');
-      } catch (directErr) {
-        // If Whisper rejects the format, fall through to decode + re-encode path
-        console.warn('Direct upload failed, re-encoding as WAV…', directErr.message);
-        text = await transcribeViaReencode(key);
-      }
-    } else {
-      // Large file — must decode and split
-      text = await transcribeViaReencode(key);
+    // Step 2: Transcribe each segment
+    let fullText = '';
+    for (let i = 0; i < segments.length; i++) {
+      const pct = 30 + Math.round(((i + 0.5) / segments.length) * 65);
+      const sizeMB = (segments[i].size / 1048576).toFixed(1);
+      prg(pct, `Transcribing segment ${i + 1}/${segments.length} (${sizeMB} MB)…`);
+
+      const t = await callWhisper(segments[i], key, i > 0);
+      fullText += (fullText ? ' ' : '') + t;
     }
 
-    $('ta').value = text;
+    prg(100, 'Complete');
+    $('ta').value = fullText;
     $('ed').classList.add('on');
     countWords();
-    toast('Transcription complete','ok');
-  } catch(err) {
+    toast('Transcription complete', 'ok');
+
+  } catch (err) {
     console.error(err);
-    toast(err.message,'err');
+    toast(err.message, 'err');
   } finally {
     $('goBtn').disabled = false;
     $('goBtn').textContent = 'Transcribe';
   }
 }
 
-/** Decode audio → split into WAV chunks → transcribe each */
-async function transcribeViaReencode(key) {
-  prg(5, 'Reading file…');
-  const arrayBuf = await readFile(file);
-
-  prg(15, 'Decoding audio (this may take a moment for large files)…');
-  const audioBuf = await decodeAudio(arrayBuf);
-
-  prg(25, 'Converting to mono 16 kHz…');
-  const mono = toMono(audioBuf);
-
-  const duration = mono.length / audioBuf.sampleRate;
-  const durStr = Math.floor(duration / 60) + 'm ' + Math.round(duration % 60) + 's';
-
-  // Check if re-encoded single WAV is small enough
-  const estSize = mono.length * 2 + 44; // 16-bit samples + header
-  if (estSize <= WHISPER_MAX) {
-    prg(30, `Transcribing ${durStr} of audio…`);
-    const wav = encodeWav(mono, audioBuf.sampleRate);
-    const wavFile = new File([wav], 'audio.wav', { type: 'audio/wav' });
-    const text = await callWhisper(wavFile, key);
-    prg(100, 'Done');
-    return text;
-  }
-
-  // Split into chunks
-  const chunks = splitIntoChunks(mono, audioBuf.sampleRate);
-  prg(30, `Split ${durStr} into ${chunks.length} segments…`);
-
-  let fullText = '';
-  for (let i = 0; i < chunks.length; i++) {
-    const pct = 30 + Math.round((i / chunks.length) * 65);
-    const chunkDur = Math.round(chunks[i].size / (TARGET_RATE * 2)); // seconds
-    prg(pct, `Segment ${i+1}/${chunks.length} (~${chunkDur}s, ${(chunks[i].size/1048576).toFixed(1)} MB)…`);
-    const t = await callWhisper(chunks[i], key, i > 0);
-    fullText += (fullText ? ' ' : '') + t;
-  }
-
-  prg(100, `All ${chunks.length} segments done`);
-  return fullText;
-}
-
-async function callWhisper(f, key, cont) {
+async function callWhisper(f, key, isContinuation) {
   const fd = new FormData();
   fd.append('file', f);
-  fd.append('model', $('model').value.trim() || 'whisper-1');
+  fd.append('model', $('model').value || 'whisper-1');
   fd.append('response_format', 'text');
+
   const lang = $('lang').value.trim();
   if (lang) fd.append('language', lang);
-  if (cont) fd.append('prompt', '...');
+  if (isContinuation) fd.append('prompt', '...');
 
   const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + key },
     body: fd
   });
-  if (!res.ok) { const e = await res.text(); throw new Error('Whisper ' + res.status + ': ' + e.slice(0,200)); }
+
+  if (!res.ok) {
+    const e = await res.text();
+    throw new Error('Whisper ' + res.status + ': ' + e.slice(0, 300));
+  }
   return (await res.text()).trim();
 }
 
-function prg(pct, msg) { $('pf').style.width = pct+'%'; $('pm').textContent = msg; }
+function prg(pct, msg) {
+  if (pct !== null) $('pf').style.width = pct + '%';
+  $('pm').textContent = msg;
+}
+
 
 // ── Editor ──
+
 function countWords() {
   const t = $('ta').value.trim();
   $('wc').textContent = (t ? t.split(/\s+/).length : 0).toLocaleString() + ' words';
 }
 
-function copyText() { navigator.clipboard.writeText($('ta').value); toast('Copied','ok'); }
+function copyText() {
+  navigator.clipboard.writeText($('ta').value);
+  toast('Copied', 'ok');
+}
 
 function downloadTxt() {
-  const name = file ? file.name.replace(/\.[^.]+$/,'') + '_transcript.txt' : 'transcript.txt';
+  const name = file ? file.name.replace(/\.[^.]+$/, '') + '_transcript.txt' : 'transcript.txt';
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([$('ta').value], {type:'text/plain'}));
+  a.href = URL.createObjectURL(new Blob([$('ta').value], { type: 'text/plain' }));
   a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
-  toast('Downloaded','ok');
+  toast('Downloaded', 'ok');
 }
 
+
 // ── Save to Google Doc tab via Apps Script ──
+
 async function callScript(payload) {
   const url = $('scriptUrl').value.trim();
   if (!url) throw new Error('Set your Apps Script URL in Settings');
@@ -500,10 +486,10 @@ async function callScript(payload) {
 
 async function saveTab() {
   const text = $('ta').value.trim();
-  if (!text) { toast('Nothing to save','warn'); return; }
+  if (!text) { toast('Nothing to save', 'warn'); return; }
 
   const docId = $('docId').value.trim();
-  if (!docId) { toast('Add your Google Doc ID in Settings','err'); toggleSettings(); return; }
+  if (!docId) { toast('Add your Google Doc ID in Settings', 'err'); toggleSettings(); return; }
 
   const tabName = $('tabName').value.trim() || undefined;
   const btn = $('saveBtn');
@@ -518,18 +504,15 @@ async function saveTab() {
       tabName: tabName
     });
 
-    // Show the new tab as a chip
     const chip = document.createElement('span');
     chip.className = 'chip new';
     chip.textContent = '✓ ' + result.tabName;
     $('tabList').prepend(chip);
 
     toast('Tab created: ' + result.tabName, 'ok');
-
-    // Open the doc at the new tab
     if (result.docUrl) window.open(result.docUrl, '_blank');
 
-  } catch(err) {
+  } catch (err) {
     console.error(err);
     toast('Save failed: ' + err.message, 'err');
   } finally {
@@ -538,9 +521,11 @@ async function saveTab() {
   }
 }
 
+
 // ── Toast ──
+
 let tt;
-function toast(msg, type='') {
+function toast(msg, type = '') {
   const el = $('toast');
   clearTimeout(tt);
   el.textContent = msg;
@@ -549,8 +534,19 @@ function toast(msg, type='') {
   tt = setTimeout(() => el.classList.remove('on'), 3500);
 }
 
+// Expose to onclick handlers (module scope)
+window.toggleSettings = toggleSettings;
+window.saveSettings = saveSettings;
+window.clearFile = clearFile;
+window.transcribe = transcribe;
+window.countWords = countWords;
+window.copyText = copyText;
+window.downloadTxt = downloadTxt;
+window.saveTab = saveTab;
+
 // ── Init ──
 loadCfg();
+
 </script>
 </body>
 </html>
