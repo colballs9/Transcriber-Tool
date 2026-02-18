@@ -217,9 +217,13 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Shim CommonJS globals so UMD bundles take the browser path -->
+<script>var exports = {}; var module = { exports: exports };</script>
 <!-- Load ffmpeg.wasm UMD builds (classic workers, no cross-origin issues) -->
 <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
+<script>var FFmpegWASM = module.exports; exports = {}; module = { exports: exports };</script>
 <script src="https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js"></script>
+<script>var FFmpegUtil = module.exports;</script>
 
 <script>
 // ── Globals ──
@@ -245,19 +249,28 @@ async function getFFmpeg() {
     }
   });
 
-  // Fetch the UMD worker chunk and create a same-origin blob URL.
-  // UMD workers use importScripts() which works from blob origins
-  // (unlike ESM workers whose import statements fail from blobs).
-  var workerResp = await fetch(
-    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/814.ffmpeg.js'
-  );
-  var workerText = await workerResp.text();
-  var workerBlob = new Blob([workerText], { type: 'text/javascript' });
+  prg(8, 'Downloading core files…');
+
+  // Fetch ALL assets as blob URLs so the blob-origin worker can load them
+  var [workerResp, coreResp, wasmResp] = await Promise.all([
+    fetch('https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/814.ffmpeg.js'),
+    fetch('https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js'),
+    fetch('https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm')
+  ]);
+
+  var workerBlob = new Blob([await workerResp.text()], { type: 'text/javascript' });
+  var coreBlob   = new Blob([await coreResp.text()],   { type: 'text/javascript' });
+  var wasmBlob   = new Blob([await wasmResp.arrayBuffer()], { type: 'application/wasm' });
+
   var workerURL = URL.createObjectURL(workerBlob);
+  var coreURL   = URL.createObjectURL(coreBlob);
+  var wasmURL   = URL.createObjectURL(wasmBlob);
+
+  prg(15, 'Initializing audio engine…');
 
   await ffmpeg.load({
-    coreURL:        'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js',
-    wasmURL:        'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm',
+    coreURL:        coreURL,
+    wasmURL:        wasmURL,
     classWorkerURL: workerURL
   });
 
