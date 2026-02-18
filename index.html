@@ -217,137 +217,141 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
+<!-- Load ffmpeg.wasm UMD builds (classic workers, no cross-origin issues) -->
+<script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/ffmpeg.js"></script>
+<script src="https://unpkg.com/@ffmpeg/util@0.12.2/dist/umd/index.js"></script>
 
+<script>
 // ── Globals ──
-const $ = id => document.getElementById(id);
-const WHISPER_MAX = 24 * 1024 * 1024;
-const SEG_MINUTES = 10;
-let file = null;
-let ffmpegInstance = null;
+var $ = function(id) { return document.getElementById(id); };
+var WHISPER_MAX = 24 * 1024 * 1024;
+var SEG_MINUTES = 10;
+var file = null;
+var ffmpegInstance = null;
 
-// ── FFmpeg loader (single-threaded, no special headers needed) ──
+// ── FFmpeg (UMD build) ──
 
 async function getFFmpeg() {
   if (ffmpegInstance) return ffmpegInstance;
 
   prg(5, 'Loading audio engine (first time only, ~30 MB)…');
 
-  const { FFmpeg } = await import(
-    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/esm/index.js'
-  );
+  var ffmpeg = new FFmpegWASM.FFmpeg();
 
-  ffmpegInstance = new FFmpeg();
-
-  ffmpegInstance.on('log', ({ message }) => {
-    if (message.includes('time=')) {
-      const match = message.match(/time=(\d+:\d+:\d+)/);
+  ffmpeg.on('log', function(evt) {
+    if (evt.message && evt.message.includes('time=')) {
+      var match = evt.message.match(/time=(\d+:\d+:\d+)/);
       if (match) prg(null, 'Processing… ' + match[1]);
     }
   });
 
-  // Fetch the worker script and create a same-origin blob URL
-  // (browsers block cross-origin Workers from CDNs like unpkg)
-  const workerResp = await fetch(
-    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/esm/worker.js'
+  // Fetch the UMD worker chunk and create a same-origin blob URL.
+  // UMD workers use importScripts() which works from blob origins
+  // (unlike ESM workers whose import statements fail from blobs).
+  var workerResp = await fetch(
+    'https://unpkg.com/@ffmpeg/ffmpeg@0.12.15/dist/umd/814.ffmpeg.js'
   );
-  const workerText = await workerResp.text();
-  const workerBlob = new Blob([workerText], { type: 'text/javascript' });
-  const workerURL = URL.createObjectURL(workerBlob);
+  var workerText = await workerResp.text();
+  var workerBlob = new Blob([workerText], { type: 'text/javascript' });
+  var workerURL = URL.createObjectURL(workerBlob);
 
-  await ffmpegInstance.load({
-    coreURL:         'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-    wasmURL:         'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm',
-    classWorkerURL:  workerURL,
+  await ffmpeg.load({
+    coreURL:        'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js',
+    wasmURL:        'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm',
+    classWorkerURL: workerURL
   });
 
-  return ffmpegInstance;
+  ffmpegInstance = ffmpeg;
+  return ffmpeg;
 }
 
 
-// ── Convert any audio → mp3 segments ready for Whisper ──
+// ── Convert any audio → mp3 segments for Whisper ──
 
 async function prepareSegments(inputFile) {
-  const ffmpeg = await getFFmpeg();
-  const { fetchFile } = await import(
-    'https://unpkg.com/@ffmpeg/util@0.12.2/dist/esm/index.js'
-  );
+  var ffmpeg = await getFFmpeg();
 
-  const inputName = 'input' + getExt(inputFile.name);
+  var ext = getExt(inputFile.name);
+  var inputName = 'input' + ext;
+
   prg(10, 'Loading file into converter…');
-  await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
+  var fileData = await FFmpegUtil.fetchFile(inputFile);
+  await ffmpeg.writeFile(inputName, fileData);
 
-  // Step 1: Convert to single mp3, mono 16kHz (small & Whisper-friendly)
+  // Convert to single mp3: mono, 16kHz, 48kbps (~0.36 MB/min)
   prg(15, 'Converting to mp3…');
   await ffmpeg.exec([
     '-i', inputName,
-    '-ac', '1',          // mono
-    '-ar', '16000',      // 16 kHz
-    '-b:a', '48k',       // 48 kbps — keeps files small (~0.36 MB/min)
+    '-ac', '1',
+    '-ar', '16000',
+    '-b:a', '48k',
     '-y', 'full.mp3'
   ]);
 
-  // Check if the single mp3 is small enough
-  const fullData = await ffmpeg.readFile('full.mp3');
-  const fullBlob = new Blob([fullData.buffer], { type: 'audio/mpeg' });
+  // Check if single mp3 fits under Whisper limit
+  var fullData = await ffmpeg.readFile('full.mp3');
+  var fullSize = fullData.byteLength || fullData.length;
 
-  if (fullBlob.size <= WHISPER_MAX) {
-    // Single segment is fine
-    await cleanupFFmpegFiles(ffmpeg, [inputName, 'full.mp3']);
-    return [new File([fullBlob], 'audio.mp3', { type: 'audio/mpeg' })];
+  if (fullSize <= WHISPER_MAX) {
+    var blob = new Blob([fullData.buffer || fullData], { type: 'audio/mpeg' });
+    await cleanup(ffmpeg, [inputName, 'full.mp3']);
+    return [new File([blob], 'audio.mp3', { type: 'audio/mpeg' })];
   }
 
-  // Step 2: Split into time-based segments
+  // Split into time-based segments
   prg(25, 'Splitting into segments…');
   await ffmpeg.exec([
     '-i', 'full.mp3',
     '-f', 'segment',
     '-segment_time', String(SEG_MINUTES * 60),
-    '-c', 'copy',        // no re-encode, just cut
+    '-c', 'copy',
     '-y', 'seg_%03d.mp3'
   ]);
 
-  // Collect all segment files
-  const segments = [];
-  for (let i = 0; i < 999; i++) {
-    const segName = 'seg_' + String(i).padStart(3, '0') + '.mp3';
+  var segments = [];
+  for (var i = 0; i < 999; i++) {
+    var segName = 'seg_' + String(i).padStart(3, '0') + '.mp3';
     try {
-      const segData = await ffmpeg.readFile(segName);
-      const segBlob = new Blob([segData.buffer], { type: 'audio/mpeg' });
+      var segData = await ffmpeg.readFile(segName);
+      var segBlob = new Blob([segData.buffer || segData], { type: 'audio/mpeg' });
       segments.push(new File([segBlob], segName, { type: 'audio/mpeg' }));
-      // Clean up segment file from ffmpeg FS
       await ffmpeg.deleteFile(segName);
-    } catch {
-      break; // No more segments
+    } catch (e) {
+      break;
     }
   }
 
-  await cleanupFFmpegFiles(ffmpeg, [inputName, 'full.mp3']);
+  await cleanup(ffmpeg, [inputName, 'full.mp3']);
   return segments;
 }
 
-async function cleanupFFmpegFiles(ffmpeg, names) {
-  for (const n of names) {
-    try { await ffmpeg.deleteFile(n); } catch {}
+async function cleanup(ffmpeg, names) {
+  for (var i = 0; i < names.length; i++) {
+    try { await ffmpeg.deleteFile(names[i]); } catch (e) {}
   }
 }
 
 function getExt(filename) {
-  const m = filename.match(/(\.[^.]+)$/);
+  var m = filename.match(/(\.[^.]+)$/);
   return m ? m[1].toLowerCase() : '.bin';
 }
 
 
 // ── Settings ──
 
-const CFGKEYS = ['apiKey', 'model', 'lang', 'scriptUrl', 'docId'];
+var CFGKEYS = ['apiKey', 'model', 'lang', 'scriptUrl', 'docId'];
 
 function loadCfg() {
-  CFGKEYS.forEach(k => { const v = localStorage.getItem('t_' + k); if (v) $(k).value = v; });
+  CFGKEYS.forEach(function(k) {
+    var v = localStorage.getItem('t_' + k);
+    if (v) $(k).value = v;
+  });
 }
 
 function saveSettings() {
-  CFGKEYS.forEach(k => localStorage.setItem('t_' + k, $(k).value.trim()));
+  CFGKEYS.forEach(function(k) {
+    localStorage.setItem('t_' + k, $(k).value.trim());
+  });
   toast('Settings saved', 'ok');
 }
 
@@ -356,16 +360,21 @@ function toggleSettings() { $('settingsPanel').classList.toggle('open'); }
 
 // ── File handling ──
 
-const dz = $('dz');
-dz.addEventListener('click', () => $('fi').click());
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if (e.dataTransfer.files.length) pick(e.dataTransfer.files[0]); });
-$('fi').addEventListener('change', e => { if (e.target.files.length) pick(e.target.files[0]); });
+var dz = $('dz');
+dz.addEventListener('click', function() { $('fi').click(); });
+dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', function() { dz.classList.remove('over'); });
+dz.addEventListener('drop', function(e) {
+  e.preventDefault(); dz.classList.remove('over');
+  if (e.dataTransfer.files.length) pick(e.dataTransfer.files[0]);
+});
+$('fi').addEventListener('change', function(e) {
+  if (e.target.files.length) pick(e.target.files[0]);
+});
 
 function pick(f) {
   file = f;
-  const mb = (f.size / 1048576).toFixed(1);
+  var mb = (f.size / 1048576).toFixed(1);
   $('fn').textContent = f.name;
   $('fm').textContent = mb + ' MB';
   $('fb').classList.add('on');
@@ -385,7 +394,7 @@ function clearFile() {
 // ── Transcription ──
 
 async function transcribe() {
-  const key = $('apiKey').value.trim();
+  var key = $('apiKey').value.trim();
   if (!key) { toast('Add your OpenAI API key in Settings', 'err'); toggleSettings(); return; }
   if (!file) return;
 
@@ -394,18 +403,18 @@ async function transcribe() {
   $('prog').classList.add('on');
 
   try {
-    // Step 1: Convert & split with ffmpeg
-    const segments = await prepareSegments(file);
-    prg(30, `${segments.length} segment${segments.length > 1 ? 's' : ''} ready`);
+    // Convert & split with ffmpeg (handles any format, any size)
+    var segments = await prepareSegments(file);
+    prg(30, segments.length + ' segment' + (segments.length > 1 ? 's' : '') + ' ready');
 
-    // Step 2: Transcribe each segment
-    let fullText = '';
-    for (let i = 0; i < segments.length; i++) {
-      const pct = 30 + Math.round(((i + 0.5) / segments.length) * 65);
-      const sizeMB = (segments[i].size / 1048576).toFixed(1);
-      prg(pct, `Transcribing segment ${i + 1}/${segments.length} (${sizeMB} MB)…`);
+    // Transcribe each segment
+    var fullText = '';
+    for (var i = 0; i < segments.length; i++) {
+      var pct = 30 + Math.round(((i + 0.5) / segments.length) * 65);
+      var sizeMB = (segments[i].size / 1048576).toFixed(1);
+      prg(pct, 'Transcribing segment ' + (i+1) + '/' + segments.length + ' (' + sizeMB + ' MB)…');
 
-      const t = await callWhisper(segments[i], key, i > 0);
+      var t = await callWhisper(segments[i], key, i > 0);
       fullText += (fullText ? ' ' : '') + t;
     }
 
@@ -425,23 +434,23 @@ async function transcribe() {
 }
 
 async function callWhisper(f, key, isContinuation) {
-  const fd = new FormData();
+  var fd = new FormData();
   fd.append('file', f);
   fd.append('model', $('model').value || 'whisper-1');
   fd.append('response_format', 'text');
 
-  const lang = $('lang').value.trim();
+  var lang = $('lang').value.trim();
   if (lang) fd.append('language', lang);
   if (isContinuation) fd.append('prompt', '...');
 
-  const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+  var res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + key },
     body: fd
   });
 
   if (!res.ok) {
-    const e = await res.text();
+    var e = await res.text();
     throw new Error('Whisper ' + res.status + ': ' + e.slice(0, 300));
   }
   return (await res.text()).trim();
@@ -456,7 +465,7 @@ function prg(pct, msg) {
 // ── Editor ──
 
 function countWords() {
-  const t = $('ta').value.trim();
+  var t = $('ta').value.trim();
   $('wc').textContent = (t ? t.split(/\s+/).length : 0).toLocaleString() + ' words';
 }
 
@@ -466,8 +475,8 @@ function copyText() {
 }
 
 function downloadTxt() {
-  const name = file ? file.name.replace(/\.[^.]+$/, '') + '_transcript.txt' : 'transcript.txt';
-  const a = document.createElement('a');
+  var name = file ? file.name.replace(/\.[^.]+$/, '') + '_transcript.txt' : 'transcript.txt';
+  var a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([$('ta').value], { type: 'text/plain' }));
   a.download = name;
   a.click();
@@ -479,41 +488,41 @@ function downloadTxt() {
 // ── Save to Google Doc tab via Apps Script ──
 
 async function callScript(payload) {
-  const url = $('scriptUrl').value.trim();
+  var url = $('scriptUrl').value.trim();
   if (!url) throw new Error('Set your Apps Script URL in Settings');
 
-  const res = await fetch(url, {
+  var res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload)
   });
 
-  const data = await res.json();
+  var data = await res.json();
   if (data.error) throw new Error(data.error);
   return data;
 }
 
 async function saveTab() {
-  const text = $('ta').value.trim();
+  var text = $('ta').value.trim();
   if (!text) { toast('Nothing to save', 'warn'); return; }
 
-  const docId = $('docId').value.trim();
+  var docId = $('docId').value.trim();
   if (!docId) { toast('Add your Google Doc ID in Settings', 'err'); toggleSettings(); return; }
 
-  const tabName = $('tabName').value.trim() || undefined;
-  const btn = $('saveBtn');
+  var tabName = $('tabName').value.trim() || undefined;
+  var btn = $('saveBtn');
   btn.disabled = true;
   btn.textContent = '📄 Saving…';
 
   try {
-    const result = await callScript({
+    var result = await callScript({
       action: 'addTab',
       docId: docId,
       text: text,
       tabName: tabName
     });
 
-    const chip = document.createElement('span');
+    var chip = document.createElement('span');
     chip.className = 'chip new';
     chip.textContent = '✓ ' + result.tabName;
     $('tabList').prepend(chip);
@@ -533,29 +542,18 @@ async function saveTab() {
 
 // ── Toast ──
 
-let tt;
-function toast(msg, type = '') {
-  const el = $('toast');
-  clearTimeout(tt);
+var toastTimer;
+function toast(msg, type) {
+  var el = $('toast');
+  clearTimeout(toastTimer);
   el.textContent = msg;
-  el.className = 'toast ' + type;
-  requestAnimationFrame(() => el.classList.add('on'));
-  tt = setTimeout(() => el.classList.remove('on'), 3500);
+  el.className = 'toast ' + (type || '');
+  requestAnimationFrame(function() { el.classList.add('on'); });
+  toastTimer = setTimeout(function() { el.classList.remove('on'); }, 3500);
 }
-
-// Expose to onclick handlers (module scope)
-window.toggleSettings = toggleSettings;
-window.saveSettings = saveSettings;
-window.clearFile = clearFile;
-window.transcribe = transcribe;
-window.countWords = countWords;
-window.copyText = copyText;
-window.downloadTxt = downloadTxt;
-window.saveTab = saveTab;
 
 // ── Init ──
 loadCfg();
-
 </script>
 </body>
 </html>
