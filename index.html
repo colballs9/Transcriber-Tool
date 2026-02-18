@@ -226,7 +226,9 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const CHUNK = 24 * 1024 * 1024;
+const WHISPER_MAX = 24 * 1024 * 1024; // 24 MB hard limit per request
+const CHUNK_MINUTES = 10;             // split audio into 10-min segments
+const TARGET_RATE = 16000;            // 16 kHz mono — what Whisper uses internally (~1.9 MB/min as WAV)
 let file = null;
 
 // ── Settings ──
@@ -255,7 +257,7 @@ function pick(f) {
   const mb = (f.size/1048576).toFixed(1);
   $('fn').textContent = f.name;
   let meta = mb + ' MB';
-  if (f.size > CHUNK) meta += ' · ' + Math.ceil(f.size/CHUNK) + ' chunks';
+  if (f.size > WHISPER_MAX) meta += ' · will be split into segments for transcription';
   $('fm').textContent = meta;
   $('fb').classList.add('on');
   $('tabNameRow').classList.add('on');
@@ -273,7 +275,92 @@ function clearFile() {
   $('goBtn').disabled = true;
 }
 
+// ── Audio Helpers: decode → resample → WAV encode ──
+
+/** Read a File into an ArrayBuffer */
+function readFile(f) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('Failed to read file'));
+    r.readAsArrayBuffer(f);
+  });
+}
+
+/** Decode any audio format the browser supports → AudioBuffer */
+async function decodeAudio(arrayBuffer) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: TARGET_RATE });
+  try {
+    const buf = await ctx.decodeAudioData(arrayBuffer);
+    return buf;
+  } finally {
+    ctx.close();
+  }
+}
+
+/** Downmix to mono Float32Array */
+function toMono(audioBuf) {
+  if (audioBuf.numberOfChannels === 1) return audioBuf.getChannelData(0);
+  const L = audioBuf.getChannelData(0);
+  const R = audioBuf.getChannelData(1);
+  const mono = new Float32Array(L.length);
+  for (let i = 0; i < L.length; i++) mono[i] = (L[i] + R[i]) / 2;
+  return mono;
+}
+
+/** Encode Float32 PCM as a 16-bit WAV file blob */
+function encodeWav(samples, sampleRate) {
+  const numSamples = samples.length;
+  const buffer = new ArrayBuffer(44 + numSamples * 2);
+  const view = new DataView(buffer);
+
+  // WAV header
+  const writeStr = (off, str) => { for(let i=0;i<str.length;i++) view.setUint8(off+i,str.charCodeAt(i)); };
+  writeStr(0, 'RIFF');
+  view.setUint32(4, 36 + numSamples * 2, true);
+  writeStr(8, 'WAVE');
+  writeStr(12, 'fmt ');
+  view.setUint32(16, 16, true);           // chunk size
+  view.setUint16(20, 1, true);            // PCM
+  view.setUint16(22, 1, true);            // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true); // byte rate
+  view.setUint16(32, 2, true);            // block align
+  view.setUint16(34, 16, true);           // bits per sample
+  writeStr(36, 'data');
+  view.setUint32(40, numSamples * 2, true);
+
+  // Convert float32 → int16
+  let offset = 44;
+  for (let i = 0; i < numSamples; i++) {
+    let s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    offset += 2;
+  }
+
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
+/** Split mono samples into time-based chunks, return array of WAV Files */
+function splitIntoChunks(monoSamples, sampleRate) {
+  const samplesPerChunk = CHUNK_MINUTES * 60 * sampleRate;
+  const totalChunks = Math.ceil(monoSamples.length / samplesPerChunk);
+  const chunks = [];
+
+  for (let i = 0; i < totalChunks; i++) {
+    const start = i * samplesPerChunk;
+    const end = Math.min(start + samplesPerChunk, monoSamples.length);
+    const slice = monoSamples.subarray(start, end);
+    const wav = encodeWav(slice, sampleRate);
+    chunks.push(new File([wav], `chunk_${i}.wav`, { type: 'audio/wav' }));
+  }
+
+  return chunks;
+}
+
+
 // ── Transcription ──
+
 async function transcribe() {
   const key = $('apiKey').value.trim();
   if (!key) { toast('Add your OpenAI API key in Settings','err'); toggleSettings(); return; }
@@ -285,21 +372,21 @@ async function transcribe() {
 
   try {
     let text = '';
-    if (file.size <= CHUNK) {
-      prg(10,'Sending to Whisper…');
-      text = await callWhisper(file, key);
-      prg(100,'Done');
-    } else {
-      const n = Math.ceil(file.size / CHUNK);
-      for (let i = 0; i < n; i++) {
-        const blob = file.slice(i*CHUNK, Math.min((i+1)*CHUNK, file.size));
-        const ext = file.name.split('.').pop() || 'mp3';
-        const chunk = new File([blob], `part${i}.${ext}`, { type: file.type });
-        prg(Math.round(i/n*100), `Chunk ${i+1}/${n} (${(blob.size/1048576).toFixed(1)} MB)…`);
-        const t = await callWhisper(chunk, key, i > 0);
-        text += (text ? ' ' : '') + t;
+
+    // Step 1: Try sending the original file directly (works for small files in supported formats)
+    if (file.size <= WHISPER_MAX) {
+      prg(10, 'Sending to Whisper…');
+      try {
+        text = await callWhisper(file, key);
+        prg(100, 'Done');
+      } catch (directErr) {
+        // If Whisper rejects the format, fall through to decode + re-encode path
+        console.warn('Direct upload failed, re-encoding as WAV…', directErr.message);
+        text = await transcribeViaReencode(key);
       }
-      prg(100, `All ${n} chunks done`);
+    } else {
+      // Large file — must decode and split
+      text = await transcribeViaReencode(key);
     }
 
     $('ta').value = text;
@@ -313,6 +400,48 @@ async function transcribe() {
     $('goBtn').disabled = false;
     $('goBtn').textContent = 'Transcribe';
   }
+}
+
+/** Decode audio → split into WAV chunks → transcribe each */
+async function transcribeViaReencode(key) {
+  prg(5, 'Reading file…');
+  const arrayBuf = await readFile(file);
+
+  prg(15, 'Decoding audio (this may take a moment for large files)…');
+  const audioBuf = await decodeAudio(arrayBuf);
+
+  prg(25, 'Converting to mono 16 kHz…');
+  const mono = toMono(audioBuf);
+
+  const duration = mono.length / audioBuf.sampleRate;
+  const durStr = Math.floor(duration / 60) + 'm ' + Math.round(duration % 60) + 's';
+
+  // Check if re-encoded single WAV is small enough
+  const estSize = mono.length * 2 + 44; // 16-bit samples + header
+  if (estSize <= WHISPER_MAX) {
+    prg(30, `Transcribing ${durStr} of audio…`);
+    const wav = encodeWav(mono, audioBuf.sampleRate);
+    const wavFile = new File([wav], 'audio.wav', { type: 'audio/wav' });
+    const text = await callWhisper(wavFile, key);
+    prg(100, 'Done');
+    return text;
+  }
+
+  // Split into chunks
+  const chunks = splitIntoChunks(mono, audioBuf.sampleRate);
+  prg(30, `Split ${durStr} into ${chunks.length} segments…`);
+
+  let fullText = '';
+  for (let i = 0; i < chunks.length; i++) {
+    const pct = 30 + Math.round((i / chunks.length) * 65);
+    const chunkDur = Math.round(chunks[i].size / (TARGET_RATE * 2)); // seconds
+    prg(pct, `Segment ${i+1}/${chunks.length} (~${chunkDur}s, ${(chunks[i].size/1048576).toFixed(1)} MB)…`);
+    const t = await callWhisper(chunks[i], key, i > 0);
+    fullText += (fullText ? ' ' : '') + t;
+  }
+
+  prg(100, `All ${chunks.length} segments done`);
+  return fullText;
 }
 
 async function callWhisper(f, key, cont) {
