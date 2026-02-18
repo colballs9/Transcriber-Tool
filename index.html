@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audio Transcriber</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111318;
+    --surface: #191c24;
+    --surface-2: #1f2330;
+    --border: #2a2f3e;
+    --text: #dfe2ed;
+    --text-2: #959bb3;
+    --text-3: #636a84;
+    --blue: #4a7cff;
+    --blue-dim: rgba(74,124,255,0.12);
+    --green: #34c77b;
+    --green-dim: rgba(52,199,123,0.12);
+    --amber: #e8a630;
+    --red: #ef5656;
+    --red-dim: rgba(239,86,86,0.12);
+    --r: 8px;
+    --rl: 12px;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; padding:2rem 1.5rem; }
+  .app { max-width:800px; margin:0 auto; }
+
+  /* ── Top bar ── */
+  .top { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.75rem; }
+  .logo { display:flex; align-items:center; gap:0.6rem; font-weight:700; font-size:1.15rem; letter-spacing:-0.01em; }
+  .logo-mark { width:32px; height:32px; background:var(--blue); border-radius:8px; display:grid; place-items:center; font-size:0.85rem; }
+  .top-btn { background:var(--surface); border:1px solid var(--border); color:var(--text-2); padding:0.45rem 0.85rem; border-radius:var(--r); cursor:pointer; font:500 0.82rem var(--sans); transition:0.15s; }
+  .top-btn:hover { border-color:var(--blue); color:var(--text); }
+
+  /* ── Panel ── */
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--rl); padding:1.4rem; margin-bottom:1.2rem; }
+  .panel-label { font:600 0.72rem var(--sans); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); margin-bottom:0.9rem; }
+
+  #settingsPanel { display:none; }
+  #settingsPanel.open { display:block; animation:fadeIn 0.2s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:translateY(0)} }
+
+  .field { margin-bottom:1rem; }
+  .field:last-child { margin-bottom:0; }
+  .field label { display:block; font:500 0.8rem var(--sans); color:var(--text-2); margin-bottom:0.3rem; }
+  .field input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.55rem 0.75rem; border-radius:6px; font:400 0.82rem var(--mono); outline:none; transition:border-color 0.15s; }
+  .field input:focus { border-color:var(--blue); }
+  .field .hint { font-size:0.72rem; color:var(--text-3); margin-top:0.25rem; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+
+  .save-cfg { margin-top:0.5rem; padding:0.5rem 1.1rem; background:var(--blue-dim); color:var(--blue); border:1px solid transparent; border-radius:var(--r); font:600 0.82rem var(--sans); cursor:pointer; transition:0.15s; }
+  .save-cfg:hover { background:var(--blue); color:#fff; }
+
+  /* ── Drop zone ── */
+  .dz { border:2px dashed var(--border); border-radius:var(--rl); padding:2.5rem 1.5rem; text-align:center; cursor:pointer; transition:0.2s; background:var(--surface); }
+  .dz:hover,.dz.over { border-color:var(--blue); background:var(--blue-dim); }
+  .dz .ic { font-size:2rem; margin-bottom:0.5rem; opacity:0.5; }
+  .dz p { color:var(--text-2); font-size:0.9rem; }
+  .dz p strong { color:var(--blue); }
+  .dz .fmt { font:400 0.72rem var(--mono); color:var(--text-3); margin-top:0.4rem; }
+  input[type="file"] { display:none; }
+
+  /* ── File badge ── */
+  .fb { display:none; align-items:center; gap:0.8rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:0.75rem 1rem; margin-top:1rem; }
+  .fb.on { display:flex; }
+  .fb .info { flex:1; }
+  .fb .name { font-weight:600; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:500px; }
+  .fb .meta { font:400 0.75rem var(--mono); color:var(--text-2); margin-top:0.1rem; }
+  .fb .rm { background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; transition:0.15s; }
+  .fb .rm:hover { color:var(--red); background:var(--red-dim); }
+
+  /* ── Tab name input ── */
+  .tab-name-row { display:none; align-items:center; gap:0.6rem; margin-top:0.8rem; }
+  .tab-name-row.on { display:flex; }
+  .tab-name-row label { font:500 0.8rem var(--sans); color:var(--text-2); white-space:nowrap; }
+  .tab-name-row input { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.7rem; border-radius:6px; font:400 0.85rem var(--sans); outline:none; }
+  .tab-name-row input:focus { border-color:var(--blue); }
+
+  /* ── Buttons ── */
+  .btn-go { width:100%; margin-top:1rem; padding:0.8rem; background:var(--blue); color:#fff; border:none; border-radius:var(--r); font:700 0.9rem var(--sans); cursor:pointer; transition:0.15s; }
+  .btn-go:hover:not(:disabled) { filter:brightness(1.12); transform:translateY(-1px); }
+  .btn-go:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .btn-green { padding:0.65rem 1.2rem; background:var(--green); color:#111; border:none; border-radius:var(--r); font:600 0.85rem var(--sans); cursor:pointer; transition:0.15s; flex:1; }
+  .btn-green:hover:not(:disabled) { filter:brightness(1.1); }
+  .btn-green:disabled { opacity:0.35; cursor:not-allowed; }
+
+  .btn-out { padding:0.6rem 1rem; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--r); font:500 0.82rem var(--sans); cursor:pointer; transition:0.15s; white-space:nowrap; }
+  .btn-out:hover { border-color:var(--blue); }
+
+  /* ── Progress ── */
+  .prog { display:none; margin-top:1.25rem; }
+  .prog.on { display:block; }
+  .prog-track { width:100%; height:5px; background:var(--surface-2); border-radius:3px; overflow:hidden; }
+  .prog-fill { height:100%; width:0%; background:var(--blue); border-radius:3px; transition:width 0.35s ease; }
+  .prog-msg { font:400 0.78rem var(--mono); color:var(--text-2); margin-top:0.4rem; }
+
+  /* ── Editor ── */
+  .ed { display:none; margin-top:1.75rem; }
+  .ed.on { display:block; animation:fadeIn 0.3s ease; }
+  .ed-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem; }
+  .ed-top h2 { font-size:1rem; font-weight:600; }
+  .wc { font:400 0.75rem var(--mono); color:var(--text-3); }
+  .ed textarea { width:100%; min-height:280px; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:1.1rem; border-radius:var(--rl); font:400 0.9rem var(--sans); line-height:1.75; resize:vertical; outline:none; transition:border-color 0.15s; }
+  .ed textarea:focus { border-color:var(--blue); }
+  .ed-actions { display:flex; gap:0.6rem; margin-top:1rem; }
+  .ed-row2 { display:flex; gap:0.5rem; margin-top:0.6rem; justify-content:flex-end; }
+
+  /* ── Tab list ── */
+  .tab-list { margin-top:0.8rem; }
+  .tab-list .chip { display:inline-block; background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:0.3rem 0.7rem; border-radius:20px; font:400 0.75rem var(--sans); margin:0.2rem 0.3rem 0.2rem 0; }
+  .tab-list .chip.new { border-color:var(--green); color:var(--green); }
+
+  /* ── Toast ── */
+  .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface-2); border:1px solid var(--border); padding:0.7rem 1.4rem; border-radius:var(--r); font:500 0.85rem var(--sans); opacity:0; transition:0.25s ease; z-index:100; white-space:nowrap; pointer-events:none; }
+  .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast.ok { border-color:var(--green); color:var(--green); }
+  .toast.err { border-color:var(--red); color:var(--red); }
+  .toast.warn { border-color:var(--amber); color:var(--amber); }
+
+  @media(max-width:600px) {
+    body { padding:1rem; }
+    .two-col { grid-template-columns:1fr; }
+    .ed-actions { flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="logo">
+      <div class="logo-mark">🎙</div>
+      <span>Transcriber</span>
+    </div>
+    <button class="top-btn" onclick="toggleSettings()">⚙ Settings</button>
+  </div>
+
+  <!-- Settings -->
+  <div class="panel" id="settingsPanel">
+    <div class="panel-label">Configuration</div>
+    <div class="field">
+      <label>OpenAI API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-..." />
+      <div class="hint">Used client-side only — never sent to Apps Script.</div>
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label>Whisper Model</label>
+        <input type="text" id="model" value="whisper-1" />
+      </div>
+      <div class="field">
+        <label>Language (optional)</label>
+        <input type="text" id="lang" placeholder="en, es, fr..." />
+        <div class="hint">ISO 639-1. Blank = auto.</div>
+      </div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:1.1rem 0;">
+    <div class="field">
+      <label>Apps Script Web App URL</label>
+      <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+    </div>
+    <div class="field">
+      <label>Google Doc ID</label>
+      <input type="text" id="docId" placeholder="Paste the doc ID from the URL" />
+      <div class="hint">From: docs.google.com/document/d/<strong>[THIS_PART]</strong>/edit</div>
+    </div>
+    <button class="save-cfg" onclick="saveSettings()">Save Settings</button>
+  </div>
+
+  <!-- Upload -->
+  <div class="dz" id="dz" onclick="$('fi').click()">
+    <div class="ic">📂</div>
+    <p>Drop audio here or <strong>browse</strong></p>
+    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4</div>
+  </div>
+  <input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4" />
+
+  <div class="fb" id="fb">
+    <span style="font-size:1.3rem">🎵</span>
+    <div class="info">
+      <div class="name" id="fn"></div>
+      <div class="meta" id="fm"></div>
+    </div>
+    <button class="rm" onclick="clearFile()">&times;</button>
+  </div>
+
+  <!-- Tab name -->
+  <div class="tab-name-row" id="tabNameRow">
+    <label>Tab name:</label>
+    <input type="text" id="tabName" placeholder="Auto-generated from filename + timestamp" />
+  </div>
+
+  <button class="btn-go" id="goBtn" disabled onclick="transcribe()">Transcribe</button>
+
+  <!-- Progress -->
+  <div class="prog" id="prog">
+    <div class="prog-track"><div class="prog-fill" id="pf"></div></div>
+    <div class="prog-msg" id="pm">Preparing...</div>
+  </div>
+
+  <!-- Editor -->
+  <div class="ed" id="ed">
+    <div class="ed-top">
+      <h2>Transcript</h2>
+      <span class="wc" id="wc">0 words</span>
+    </div>
+    <textarea id="ta" oninput="countWords()"></textarea>
+    <div class="ed-actions">
+      <button class="btn-green" id="saveBtn" onclick="saveTab()">📄 Save as New Tab in Doc</button>
+    </div>
+    <div class="tab-list" id="tabList"></div>
+    <div class="ed-row2">
+      <button class="btn-out" onclick="copyText()">📋 Copy</button>
+      <button class="btn-out" onclick="downloadTxt()">⬇ Download .txt</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const CHUNK = 24 * 1024 * 1024;
+let file = null;
+
+// ── Settings ──
+const CFGKEYS = ['apiKey','model','lang','scriptUrl','docId'];
+
+function loadCfg() {
+  CFGKEYS.forEach(k => { const v = localStorage.getItem('t_'+k); if(v) $(k).value = v; });
+}
+
+function saveSettings() {
+  CFGKEYS.forEach(k => localStorage.setItem('t_'+k, $(k).value.trim()));
+  toast('Settings saved','ok');
+}
+
+function toggleSettings() { $('settingsPanel').classList.toggle('open'); }
+
+// ── File handling ──
+const dz = $('dz');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files.length) pick(e.dataTransfer.files[0]); });
+$('fi').addEventListener('change', e => { if(e.target.files.length) pick(e.target.files[0]); });
+
+function pick(f) {
+  file = f;
+  const mb = (f.size/1048576).toFixed(1);
+  $('fn').textContent = f.name;
+  let meta = mb + ' MB';
+  if (f.size > CHUNK) meta += ' · ' + Math.ceil(f.size/CHUNK) + ' chunks';
+  $('fm').textContent = meta;
+  $('fb').classList.add('on');
+  $('tabNameRow').classList.add('on');
+  $('goBtn').disabled = false;
+
+  // Pre-fill tab name from filename
+  const base = f.name.replace(/\.[^.]+$/, '');
+  $('tabName').value = base;
+}
+
+function clearFile() {
+  file = null; $('fi').value = '';
+  $('fb').classList.remove('on');
+  $('tabNameRow').classList.remove('on');
+  $('goBtn').disabled = true;
+}
+
+// ── Transcription ──
+async function transcribe() {
+  const key = $('apiKey').value.trim();
+  if (!key) { toast('Add your OpenAI API key in Settings','err'); toggleSettings(); return; }
+  if (!file) return;
+
+  $('goBtn').disabled = true;
+  $('goBtn').textContent = 'Transcribing…';
+  $('prog').classList.add('on');
+
+  try {
+    let text = '';
+    if (file.size <= CHUNK) {
+      prg(10,'Sending to Whisper…');
+      text = await callWhisper(file, key);
+      prg(100,'Done');
+    } else {
+      const n = Math.ceil(file.size / CHUNK);
+      for (let i = 0; i < n; i++) {
+        const blob = file.slice(i*CHUNK, Math.min((i+1)*CHUNK, file.size));
+        const ext = file.name.split('.').pop() || 'mp3';
+        const chunk = new File([blob], `part${i}.${ext}`, { type: file.type });
+        prg(Math.round(i/n*100), `Chunk ${i+1}/${n} (${(blob.size/1048576).toFixed(1)} MB)…`);
+        const t = await callWhisper(chunk, key, i > 0);
+        text += (text ? ' ' : '') + t;
+      }
+      prg(100, `All ${n} chunks done`);
+    }
+
+    $('ta').value = text;
+    $('ed').classList.add('on');
+    countWords();
+    toast('Transcription complete','ok');
+  } catch(err) {
+    console.error(err);
+    toast(err.message,'err');
+  } finally {
+    $('goBtn').disabled = false;
+    $('goBtn').textContent = 'Transcribe';
+  }
+}
+
+async function callWhisper(f, key, cont) {
+  const fd = new FormData();
+  fd.append('file', f);
+  fd.append('model', $('model').value.trim() || 'whisper-1');
+  fd.append('response_format', 'text');
+  const lang = $('lang').value.trim();
+  if (lang) fd.append('language', lang);
+  if (cont) fd.append('prompt', '...');
+
+  const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + key },
+    body: fd
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error('Whisper ' + res.status + ': ' + e.slice(0,200)); }
+  return (await res.text()).trim();
+}
+
+function prg(pct, msg) { $('pf').style.width = pct+'%'; $('pm').textContent = msg; }
+
+// ── Editor ──
+function countWords() {
+  const t = $('ta').value.trim();
+  $('wc').textContent = (t ? t.split(/\s+/).length : 0).toLocaleString() + ' words';
+}
+
+function copyText() { navigator.clipboard.writeText($('ta').value); toast('Copied','ok'); }
+
+function downloadTxt() {
+  const name = file ? file.name.replace(/\.[^.]+$/,'') + '_transcript.txt' : 'transcript.txt';
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([$('ta').value], {type:'text/plain'}));
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Downloaded','ok');
+}
+
+// ── Save to Google Doc tab via Apps Script ──
+async function callScript(payload) {
+  const url = $('scriptUrl').value.trim();
+  if (!url) throw new Error('Set your Apps Script URL in Settings');
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+async function saveTab() {
+  const text = $('ta').value.trim();
+  if (!text) { toast('Nothing to save','warn'); return; }
+
+  const docId = $('docId').value.trim();
+  if (!docId) { toast('Add your Google Doc ID in Settings','err'); toggleSettings(); return; }
+
+  const tabName = $('tabName').value.trim() || undefined;
+  const btn = $('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '📄 Saving…';
+
+  try {
+    const result = await callScript({
+      action: 'addTab',
+      docId: docId,
+      text: text,
+      tabName: tabName
+    });
+
+    // Show the new tab as a chip
+    const chip = document.createElement('span');
+    chip.className = 'chip new';
+    chip.textContent = '✓ ' + result.tabName;
+    $('tabList').prepend(chip);
+
+    toast('Tab created: ' + result.tabName, 'ok');
+
+    // Open the doc at the new tab
+    if (result.docUrl) window.open(result.docUrl, '_blank');
+
+  } catch(err) {
+    console.error(err);
+    toast('Save failed: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📄 Save as New Tab in Doc';
+  }
+}
+
+// ── Toast ──
+let tt;
+function toast(msg, type='') {
+  const el = $('toast');
+  clearTimeout(tt);
+  el.textContent = msg;
+  el.className = 'toast ' + type;
+  requestAnimationFrame(() => el.classList.add('on'));
+  tt = setTimeout(() => el.classList.remove('on'), 3500);
+}
+
+// ── Init ──
+loadCfg();
+</script>
+</body>
+</html>
