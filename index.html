@@ -19,6 +19,7 @@
     --green: #34c77b;
     --green-dim: rgba(52,199,123,0.12);
     --amber: #e8a630;
+    --amber-dim: rgba(232,166,48,0.12);
     --red: #ef5656;
     --red-dim: rgba(239,86,86,0.12);
     --r: 8px;
@@ -53,41 +54,58 @@
   .save-cfg { margin-top:0.5rem; padding:0.5rem 1.1rem; background:var(--blue-dim); color:var(--blue); border:1px solid transparent; border-radius:var(--r); font:600 0.82rem var(--sans); cursor:pointer; transition:0.15s; }
   .save-cfg:hover { background:var(--blue); color:#fff; }
 
+  .dest-input-row { display:flex; gap:0.5rem; }
+  .dest-input-row input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.6rem 0.8rem; border-radius:6px; font:400 0.82rem var(--mono); outline:none; transition:border-color 0.15s; }
+  .dest-input-row input:focus { border-color:var(--blue); }
+  .dest-input-row .clear-btn { background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:0 0.9rem; border-radius:6px; cursor:pointer; font-size:1rem; transition:0.15s; }
+  .dest-input-row .clear-btn:hover { border-color:var(--red); color:var(--red); }
+  .dest-status { margin-top:0.5rem; font:400 0.78rem var(--mono); color:var(--text-3); padding:0.4rem 0.7rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); }
+  .dest-status.ok  { color:var(--green); border-color:var(--green); background:var(--green-dim); }
+  .dest-status.err { color:var(--red);   border-color:var(--red);   background:var(--red-dim);   }
+
   .dz { border:2px dashed var(--border); border-radius:var(--rl); padding:2.5rem 1.5rem; text-align:center; cursor:pointer; transition:0.2s; background:var(--surface); }
   .dz:hover,.dz.over { border-color:var(--blue); background:var(--blue-dim); }
+  .dz.disabled { opacity:0.4; pointer-events:none; }
   .dz .ic { font-size:2rem; margin-bottom:0.5rem; opacity:0.5; }
   .dz p { color:var(--text-2); font-size:0.9rem; }
   .dz p strong { color:var(--blue); }
   .dz .fmt { font:400 0.72rem var(--mono); color:var(--text-3); margin-top:0.4rem; }
   input[type="file"] { display:none; }
 
-  .fb { display:none; align-items:center; gap:0.8rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:0.75rem 1rem; margin-top:1rem; }
-  .fb.on { display:flex; }
-  .fb .info { flex:1; }
-  .fb .name { font-weight:600; font-size:0.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:500px; }
-  .fb .meta { font:400 0.75rem var(--mono); color:var(--text-2); margin-top:0.1rem; }
-  .fb .rm { background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; transition:0.15s; }
-  .fb .rm:hover { color:var(--red); background:var(--red-dim); }
-
-  .name-row { display:none; align-items:center; gap:0.6rem; margin-top:0.8rem; }
-  .name-row.on { display:flex; }
-  .name-row label { font:500 0.8rem var(--sans); color:var(--text-2); white-space:nowrap; }
-  .name-row input { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.7rem; border-radius:6px; font:400 0.85rem var(--sans); outline:none; }
-  .name-row input:focus { border-color:var(--blue); }
+  .queue { display:none; margin-top:1rem; }
+  .queue.on { display:block; }
+  .queue-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; }
+  .queue-head .label { font:600 0.72rem var(--sans); text-transform:uppercase; letter-spacing:0.06em; color:var(--text-3); }
+  .queue-head .clear-all { background:none; border:none; color:var(--text-3); font:400 0.75rem var(--sans); cursor:pointer; padding:0.2rem 0.4rem; }
+  .queue-head .clear-all:hover { color:var(--red); }
+  .queue-item { display:flex; align-items:center; gap:0.7rem; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:0.65rem 0.9rem; margin-bottom:0.4rem; }
+  .queue-item .ic { font-size:1.1rem; flex-shrink:0; }
+  .queue-item .info { flex:1; min-width:0; }
+  .queue-item .name { font-weight:600; font-size:0.85rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .queue-item .meta { font:400 0.72rem var(--mono); color:var(--text-2); margin-top:0.1rem; }
+  .queue-item .status { font:500 0.75rem var(--mono); padding:0.2rem 0.55rem; border-radius:12px; white-space:nowrap; }
+  .queue-item .status.queued       { color:var(--text-3); background:var(--surface-2); border:1px solid var(--border); }
+  .queue-item .status.uploading,
+  .queue-item .status.transcribing,
+  .queue-item .status.saving       { color:var(--blue);  background:var(--blue-dim);  border:1px solid var(--blue); }
+  .queue-item .status.done         { color:var(--green); background:var(--green-dim); border:1px solid var(--green); }
+  .queue-item .status.error        { color:var(--red);   background:var(--red-dim);   border:1px solid var(--red);   }
+  .queue-item .saved-link { color:var(--green); text-decoration:none; font-size:0.75rem; font-weight:500; padding:0.15rem 0.45rem; border-radius:4px; transition:0.15s; }
+  .queue-item .saved-link:hover { background:var(--green-dim); }
+  .queue-item .rm { background:none; border:none; color:var(--text-3); font-size:1.1rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; transition:0.15s; }
+  .queue-item .rm:hover { color:var(--red); background:var(--red-dim); }
+  .queue-item .rm:disabled { opacity:0.3; cursor:not-allowed; }
 
   .btn-go { width:100%; margin-top:1rem; padding:0.8rem; background:var(--blue); color:#fff; border:none; border-radius:var(--r); font:700 0.9rem var(--sans); cursor:pointer; transition:0.15s; }
   .btn-go:hover:not(:disabled) { filter:brightness(1.12); transform:translateY(-1px); }
   .btn-go:disabled { opacity:0.35; cursor:not-allowed; }
 
-  .btn-save { flex:1; padding:0.7rem 1rem; border:none; border-radius:var(--r); font:600 0.85rem var(--sans); cursor:pointer; transition:0.15s; white-space:nowrap; }
-  .btn-save:disabled { opacity:0.35; cursor:not-allowed; }
-  .btn-save.primary { background:var(--green); color:#111; }
-  .btn-save.primary:hover:not(:disabled) { filter:brightness(1.1); }
-  .btn-save.secondary { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
-  .btn-save.secondary:hover:not(:disabled) { border-color:var(--blue); }
-
   .btn-out { padding:0.6rem 1rem; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--r); font:500 0.82rem var(--sans); cursor:pointer; transition:0.15s; white-space:nowrap; }
   .btn-out:hover { border-color:var(--blue); }
+
+  .btn-secondary { padding:0.65rem 1.2rem; background:var(--surface-2); color:var(--text); border:1px solid var(--border); border-radius:var(--r); font:600 0.85rem var(--sans); cursor:pointer; transition:0.15s; }
+  .btn-secondary:hover:not(:disabled) { border-color:var(--blue); }
+  .btn-secondary:disabled { opacity:0.35; cursor:not-allowed; }
 
   .prog { display:none; margin-top:1.25rem; }
   .prog.on { display:block; }
@@ -104,13 +122,8 @@
   .ed textarea:focus { border-color:var(--blue); }
   #summary { min-height:90px; margin-bottom:1.25rem; }
   #ta { min-height:280px; }
-  .ed-actions { display:flex; gap:0.6rem; margin-top:1rem; }
-  .ed-row2 { display:flex; gap:0.5rem; margin-top:0.6rem; justify-content:flex-end; }
-
-  .saved-list { margin-top:0.8rem; }
-  .saved-list .chip { display:inline-block; background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:0.3rem 0.7rem; border-radius:20px; font:400 0.75rem var(--sans); margin:0.2rem 0.3rem 0.2rem 0; }
-  .saved-list .chip.new { border-color:var(--green); color:var(--green); cursor:pointer; }
-  .saved-list .chip.new:hover { background:var(--green-dim); }
+  .ed-actions { display:flex; gap:0.6rem; margin-top:1rem; flex-wrap:wrap; }
+  .ed-actions .spacer { flex:1; }
 
   .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface-2); border:1px solid var(--border); padding:0.7rem 1.4rem; border-radius:var(--r); font:500 0.85rem var(--sans); opacity:0; transition:0.25s ease; z-index:100; white-space:nowrap; pointer-events:none; }
   .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -152,12 +165,7 @@
     <div class="field">
       <label>Apps Script Web App URL</label>
       <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-      <div class="hint">Backend that handles saving to Google Doc / Drive folder.</div>
-    </div>
-    <div class="field">
-      <label>Google Drive Folder ID (optional)</label>
-      <input type="text" id="folderId" placeholder="Destination folder for .txt output" />
-      <div class="hint">From: drive.google.com/drive/folders/<strong>[THIS_PART]</strong></div>
+      <div class="hint">Required to save to Google Drive / Google Docs.</div>
     </div>
     <div class="field">
       <label>Google Doc ID (optional)</label>
@@ -167,37 +175,42 @@
     <button class="save-cfg" onclick="saveSettings()">Save Settings</button>
   </div>
 
+  <!-- Destination -->
+  <div class="panel">
+    <div class="panel-label">Destination (optional)</div>
+    <div class="dest-input-row">
+      <input type="text" id="folderInput" placeholder="Paste Google Drive folder URL or ID…" oninput="onFolderInput()" />
+      <button class="clear-btn" onclick="clearFolder()" title="Clear">×</button>
+    </div>
+    <div class="dest-status" id="destStatus">No folder — transcripts will download locally.</div>
+  </div>
+
   <!-- Upload -->
   <div class="dz" id="dz">
     <div class="ic">📂</div>
-    <p>Drop audio here or <strong>browse</strong></p>
-    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — up to 2.2 GB, 10 hrs max</div>
+    <p>Drop audio files here or <strong>browse</strong> (multiple OK)</p>
+    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — up to 2.2 GB / 10 hrs each</div>
   </div>
-  <input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4" />
+  <input type="file" id="fi" multiple accept="audio/*,video/mp4,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4" />
 
-  <div class="fb" id="fb">
-    <span style="font-size:1.3rem">🎵</span>
-    <div class="info">
-      <div class="name" id="fn"></div>
-      <div class="meta" id="fm"></div>
+  <!-- Queue -->
+  <div class="queue" id="queue">
+    <div class="queue-head">
+      <span class="label" id="queueLabel">Queue</span>
+      <button class="clear-all" id="clearAllBtn" onclick="clearQueue()">Clear all</button>
     </div>
-    <button class="rm" onclick="clearFile()">&times;</button>
+    <div id="queueList"></div>
   </div>
 
-  <div class="name-row" id="nameRow">
-    <label>Name:</label>
-    <input type="text" id="outName" placeholder="Used as filename / doc section heading" />
-  </div>
-
-  <button class="btn-go" id="goBtn" disabled onclick="transcribe()">Transcribe</button>
+  <button class="btn-go" id="goBtn" disabled onclick="transcribeAll()">Transcribe</button>
 
   <!-- Progress -->
   <div class="prog" id="prog">
     <div class="prog-track"><div class="prog-fill" id="pf"></div></div>
-    <div class="prog-msg" id="pm">Preparing...</div>
+    <div class="prog-msg" id="pm">Preparing…</div>
   </div>
 
-  <!-- Editor -->
+  <!-- Editor (single-file mode only) -->
   <div class="ed" id="ed">
     <div class="ed-top">
       <h2>Summary</h2>
@@ -211,13 +224,10 @@
     <textarea id="ta" oninput="countWords()"></textarea>
 
     <div class="ed-actions">
-      <button class="btn-save primary" id="saveFolderBtn" onclick="saveToFolder()">💾 Save .txt to Drive Folder</button>
-      <button class="btn-save secondary" id="saveDocBtn" onclick="saveToDoc()">📄 Append to Google Doc</button>
-    </div>
-    <div class="saved-list" id="savedList"></div>
-    <div class="ed-row2">
       <button class="btn-out" onclick="copyText()">📋 Copy</button>
-      <button class="btn-out" onclick="downloadTxt()">⬇ Download .txt</button>
+      <button class="btn-out" onclick="downloadCurrent()">⬇ Download .txt</button>
+      <div class="spacer"></div>
+      <button class="btn-secondary" id="saveDocBtn" onclick="saveToDoc()">📄 Append to Google Doc</button>
     </div>
   </div>
 </div>
@@ -227,14 +237,17 @@
 <script>
 // ── Globals ──
 var $ = function(id) { return document.getElementById(id); };
-var file = null;
 var POLL_INTERVAL_MS = 5000;
-var POLL_MAX_ATTEMPTS = 480;  // 40 minutes at 5s intervals — enough for ~10hr audio
+var POLL_MAX_ATTEMPTS = 480;  // ~40 minutes at 5s intervals
+
+var queue = [];  // [{ id, file, status, result?, savedUrl?, error? }]
+var folderId = null;
+var transcribing = false;
 
 
 // ── Settings ──
 
-var CFGKEYS = ['apiKey', 'lang', 'scriptUrl', 'folderId', 'docId'];
+var CFGKEYS = ['apiKey', 'lang', 'scriptUrl', 'docId'];
 
 function loadCfg() {
   CFGKEYS.forEach(function(k) {
@@ -253,87 +266,159 @@ function saveSettings() {
 function toggleSettings() { $('settingsPanel').classList.toggle('open'); }
 
 
-// ── File handling ──
+// ── Destination folder parsing ──
+
+function parseFolderId(input) {
+  if (!input) return null;
+  input = input.trim();
+  var m = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  if (/^[a-zA-Z0-9_-]{10,}$/.test(input)) return input;
+  return null;
+}
+
+function onFolderInput() {
+  var raw = $('folderInput').value;
+  folderId = parseFolderId(raw);
+  var s = $('destStatus');
+  if (!raw.trim()) {
+    s.textContent = 'No folder — transcripts will download locally.';
+    s.className = 'dest-status';
+  } else if (folderId) {
+    s.textContent = '✓ Folder ID: ' + folderId;
+    s.className = 'dest-status ok';
+  } else {
+    s.textContent = '⚠ Unable to parse folder ID from input.';
+    s.className = 'dest-status err';
+  }
+  localStorage.setItem('t_folderInput', raw);
+  updateGoBtn();
+}
+
+function clearFolder() {
+  $('folderInput').value = '';
+  onFolderInput();
+}
+
+
+// ── File queue ──
 
 var dz = $('dz');
-dz.addEventListener('click', function() { $('fi').click(); });
-dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('click', function() { if (!transcribing) $('fi').click(); });
+dz.addEventListener('dragover', function(e) { e.preventDefault(); if (!transcribing) dz.classList.add('over'); });
 dz.addEventListener('dragleave', function() { dz.classList.remove('over'); });
 dz.addEventListener('drop', function(e) {
   e.preventDefault(); dz.classList.remove('over');
-  if (e.dataTransfer.files.length) pick(e.dataTransfer.files[0]);
+  if (transcribing) return;
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
 });
 $('fi').addEventListener('change', function(e) {
-  if (e.target.files.length) pick(e.target.files[0]);
+  if (e.target.files.length) addFiles(e.target.files);
+  e.target.value = '';  // allow re-selecting the same files
 });
 
-function pick(f) {
-  file = f;
-  var mb = (f.size / 1048576).toFixed(1);
-  $('fn').textContent = f.name;
-  $('fm').textContent = mb + ' MB';
-  $('fb').classList.add('on');
-  $('nameRow').classList.add('on');
-  $('goBtn').disabled = false;
-  $('outName').value = f.name.replace(/\.[^.]+$/, '');
+function addFiles(fileList) {
+  Array.from(fileList).forEach(function(f) {
+    queue.push({
+      id: 'q_' + Math.random().toString(36).slice(2, 9),
+      file: f,
+      status: 'queued'
+    });
+  });
+  renderQueue();
+  updateGoBtn();
 }
 
-function clearFile() {
-  file = null; $('fi').value = '';
-  $('fb').classList.remove('on');
-  $('nameRow').classList.remove('on');
-  $('goBtn').disabled = true;
+function removeFromQueue(id) {
+  if (transcribing) return;
+  queue = queue.filter(function(q) { return q.id !== id; });
+  renderQueue();
+  updateGoBtn();
 }
 
+function clearQueue() {
+  if (transcribing) return;
+  queue = [];
+  renderQueue();
+  updateGoBtn();
+  $('ed').classList.remove('on');
+}
 
-// ── AssemblyAI transcription ──
-
-async function transcribe() {
-  var key = $('apiKey').value.trim();
-  if (!key) { toast('Add your AssemblyAI API key in Settings', 'err'); toggleSettings(); return; }
-  if (!file) return;
-
-  $('goBtn').disabled = true;
-  $('goBtn').textContent = 'Transcribing…';
-  $('prog').classList.add('on');
-
-  try {
-    prg(5, 'Uploading audio to AssemblyAI…');
-    var audioUrl = await uploadToAssemblyAI(file, key);
-
-    prg(25, 'Submitting transcription job…');
-    var transcriptId = await submitTranscription(audioUrl, key);
-
-    var result = await pollTranscription(transcriptId, key);
-
-    prg(100, 'Complete');
-
-    $('ta').value = formatTranscript(result);
-    $('summary').value = (result.summary || '').trim();
-    $('ed').classList.add('on');
-    countWords();
-
-    var speakerCount = countSpeakers(result);
-    var msg = 'Transcription complete';
-    if (speakerCount > 1) msg += ' — ' + speakerCount + ' speakers detected';
-    toast(msg, 'ok');
-
-  } catch (err) {
-    console.error(err);
-    toast(err.message, 'err');
-  } finally {
-    $('goBtn').disabled = false;
-    $('goBtn').textContent = 'Transcribe';
+function renderQueue() {
+  var list = $('queueList');
+  var wrap = $('queue');
+  list.innerHTML = '';
+  if (queue.length === 0) {
+    wrap.classList.remove('on');
+    return;
   }
+  wrap.classList.add('on');
+  queue.forEach(function(q) { list.appendChild(buildQueueItem(q)); });
+  $('queueLabel').textContent = 'Queue (' + queue.length + ')';
 }
+
+function buildQueueItem(q) {
+  var div = document.createElement('div');
+  div.className = 'queue-item';
+  div.dataset.id = q.id;
+
+  var mb = (q.file.size / 1048576).toFixed(1);
+  var statusLabel = q.status === 'uploading'    ? 'Uploading…'
+                  : q.status === 'transcribing' ? 'Transcribing…'
+                  : q.status === 'saving'       ? 'Saving…'
+                  : q.status === 'done'         ? (folderId ? 'Saved' : 'Downloaded')
+                  : q.status === 'error'        ? 'Error'
+                  : 'Queued';
+
+  var metaText = mb + ' MB';
+  if (q.error) metaText += ' · ' + q.error;
+
+  div.innerHTML =
+    '<span class="ic">🎵</span>' +
+    '<div class="info">' +
+      '<div class="name"></div>' +
+      '<div class="meta"></div>' +
+    '</div>' +
+    '<span class="status ' + q.status + '"></span>' +
+    (q.savedUrl ? '<a class="saved-link" target="_blank" rel="noopener">view</a>' : '') +
+    '<button class="rm" title="Remove">×</button>';
+
+  // Assign textContent to avoid any HTML injection concerns
+  div.querySelector('.name').textContent = q.file.name;
+  div.querySelector('.meta').textContent = metaText;
+  div.querySelector('.status').textContent = statusLabel;
+  if (q.savedUrl) div.querySelector('.saved-link').href = q.savedUrl;
+
+  var rmBtn = div.querySelector('.rm');
+  rmBtn.disabled = transcribing;
+  rmBtn.onclick = function() { removeFromQueue(q.id); };
+
+  return div;
+}
+
+function updateQueueItem(id) {
+  var q = queue.find(function(x) { return x.id === id; });
+  if (!q) return;
+  var existing = document.querySelector('.queue-item[data-id="' + id + '"]');
+  if (!existing) { renderQueue(); return; }
+  existing.replaceWith(buildQueueItem(q));
+}
+
+function updateGoBtn() {
+  var pending = queue.filter(function(q) { return q.status === 'queued'; }).length;
+  $('goBtn').disabled = transcribing || pending === 0;
+  $('goBtn').textContent = pending > 1
+    ? 'Transcribe all (' + pending + ')'
+    : 'Transcribe';
+}
+
+
+// ── AssemblyAI transcription (per-file) ──
 
 async function uploadToAssemblyAI(f, key) {
   var res = await fetch('https://api.assemblyai.com/v2/upload', {
     method: 'POST',
-    headers: {
-      'Authorization': key,
-      'Content-Type': 'application/octet-stream'
-    },
+    headers: { 'Authorization': key, 'Content-Type': 'application/octet-stream' },
     body: f
   });
   if (!res.ok) {
@@ -359,10 +444,7 @@ async function submitTranscription(audioUrl, key) {
 
   var res = await fetch('https://api.assemblyai.com/v2/transcript', {
     method: 'POST',
-    headers: {
-      'Authorization': key,
-      'Content-Type': 'application/json'
-    },
+    headers: { 'Authorization': key, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   if (!res.ok) {
@@ -376,48 +458,131 @@ async function submitTranscription(audioUrl, key) {
 
 async function pollTranscription(id, key) {
   var url = 'https://api.assemblyai.com/v2/transcript/' + id;
-
   for (var i = 0; i < POLL_MAX_ATTEMPTS; i++) {
     await sleep(POLL_INTERVAL_MS);
-
     var res = await fetch(url, { headers: { 'Authorization': key } });
     if (!res.ok) {
       var e = await res.text();
       throw new Error('Poll failed ' + res.status + ': ' + e.slice(0, 300));
     }
     var data = await res.json();
-
     if (data.status === 'completed') return data;
     if (data.status === 'error') throw new Error('Transcription failed: ' + data.error);
-
-    // Ramp progress 30 → 95 across polls, capped
-    var pct = Math.min(30 + i * 2, 95);
-    prg(pct, 'Transcribing… (' + data.status + ')');
   }
-
   throw new Error('Transcription timed out after ' + (POLL_MAX_ATTEMPTS * POLL_INTERVAL_MS / 60000) + ' minutes');
 }
 
 function formatTranscript(result) {
   var utterances = result.utterances;
   if (!utterances || utterances.length === 0) return (result.text || '').trim();
-
-  var speakerCount = countSpeakers(result);
-  if (speakerCount <= 1) return (result.text || '').trim();
-
-  return utterances.map(function(u) {
-    return 'Speaker ' + u.speaker + ': ' + u.text;
-  }).join('\n\n');
-}
-
-function countSpeakers(result) {
-  if (!result.utterances) return 0;
   var speakers = {};
-  result.utterances.forEach(function(u) { speakers[u.speaker] = true; });
-  return Object.keys(speakers).length;
+  utterances.forEach(function(u) { speakers[u.speaker] = true; });
+  if (Object.keys(speakers).length <= 1) return (result.text || '').trim();
+  return utterances.map(function(u) { return 'Speaker ' + u.speaker + ': ' + u.text; }).join('\n\n');
 }
 
 function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+
+// ── Batch runner ──
+
+async function transcribeAll() {
+  var key = $('apiKey').value.trim();
+  if (!key) { toast('Add AssemblyAI API key in Settings', 'err'); toggleSettings(); return; }
+
+  var pending = queue.filter(function(q) { return q.status === 'queued'; });
+  if (pending.length === 0) return;
+
+  // If we'll be saving to folder, Apps Script URL is required
+  if (folderId && !$('scriptUrl').value.trim()) {
+    toast('Set your Apps Script URL in Settings to save to Drive', 'err');
+    toggleSettings();
+    return;
+  }
+
+  transcribing = true;
+  dz.classList.add('disabled');
+  $('ed').classList.remove('on');
+  $('prog').classList.add('on');
+  renderQueue();  // re-render to disable rm buttons
+  updateGoBtn();
+
+  var total = pending.length;
+  var completed = 0;
+  var errors = 0;
+
+  prg(0, 'Starting (' + total + ' file' + (total > 1 ? 's' : '') + ')…');
+
+  for (var i = 0; i < pending.length; i++) {
+    var item = pending[i];
+    prg(Math.round(completed / total * 100), (completed + 1) + ' / ' + total + ' — ' + item.file.name);
+
+    try {
+      await processOne(item, key);
+      completed++;
+    } catch (err) {
+      console.error(err);
+      item.status = 'error';
+      item.error = err.message;
+      updateQueueItem(item.id);
+      errors++;
+    }
+  }
+
+  prg(100, 'Complete — ' + completed + ' / ' + total + (errors ? ' (' + errors + ' errors)' : ''));
+
+  transcribing = false;
+  dz.classList.remove('disabled');
+  renderQueue();
+  updateGoBtn();
+
+  // Single-file convenience: show editor for review & Doc append
+  if (queue.length === 1 && queue[0].status === 'done') {
+    var r = queue[0].result;
+    $('summary').value = (r.summary || '').trim();
+    $('ta').value = formatTranscript(r);
+    $('ed').classList.add('on');
+    countWords();
+  }
+
+  var toastMsg = completed + ' of ' + total + ' transcribed';
+  if (errors) toastMsg += ' (' + errors + ' failed)';
+  toast(toastMsg, errors ? 'warn' : 'ok');
+}
+
+async function processOne(item, key) {
+  item.status = 'uploading';
+  updateQueueItem(item.id);
+  var audioUrl = await uploadToAssemblyAI(item.file, key);
+
+  item.status = 'transcribing';
+  updateQueueItem(item.id);
+  var transcriptId = await submitTranscription(audioUrl, key);
+  var result = await pollTranscription(transcriptId, key);
+  item.result = result;
+
+  var baseName = item.file.name.replace(/\.[^.]+$/, '');
+  var summary = (result.summary || '').trim();
+  var transcript = formatTranscript(result);
+
+  if (folderId) {
+    item.status = 'saving';
+    updateQueueItem(item.id);
+    var saved = await callScript({
+      action: 'createTxtFile',
+      folderId: folderId,
+      filename: baseName,
+      summary: summary,
+      transcript: transcript
+    });
+    item.savedUrl = saved.fileUrl;
+  } else {
+    downloadTxtFile(baseName, summary, transcript);
+  }
+
+  item.status = 'done';
+  updateQueueItem(item.id);
+}
 
 function prg(pct, msg) {
   if (pct !== null) $('pf').style.width = pct + '%';
@@ -425,11 +590,29 @@ function prg(pct, msg) {
 }
 
 
-// ── Editor helpers ──
+// ── Output helpers ──
 
-function countWords() {
-  var t = $('ta').value.trim();
-  $('wc').textContent = (t ? t.split(/\s+/).length : 0).toLocaleString() + ' words';
+function buildTxtBody(summary, transcript) {
+  return 'SUMMARY\n\n' +
+    (summary && summary.trim() ? summary.trim() : '(No summary generated)') +
+    '\n\n---\n\nTRANSCRIPT\n\n' + transcript;
+}
+
+function downloadTxtFile(basename, summary, transcript) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([buildTxtBody(summary, transcript)], { type: 'text/plain' }));
+  a.download = (basename || 'transcript') + '.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function downloadCurrent() {
+  // Editor-mode download (single file). Uses edited contents.
+  var basename = queue.length === 1
+    ? queue[0].file.name.replace(/\.[^.]+$/, '')
+    : 'transcript';
+  downloadTxtFile(basename, $('summary').value, $('ta').value);
+  toast('Downloaded', 'ok');
 }
 
 function copyText() {
@@ -437,28 +620,13 @@ function copyText() {
   toast('Copied', 'ok');
 }
 
-function downloadTxt() {
-  var name = ($('outName').value.trim() || 'transcript') + '.txt';
-  var body = buildTxtBody();
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(a.href);
-  toast('Downloaded', 'ok');
-}
-
-function buildTxtBody() {
-  var summary = $('summary').value.trim();
-  var transcript = $('ta').value.trim();
-  return 'SUMMARY\n\n' +
-    (summary || '(No summary generated)') +
-    '\n\n---\n\nTRANSCRIPT\n\n' +
-    transcript;
+function countWords() {
+  var t = $('ta').value.trim();
+  $('wc').textContent = (t ? t.split(/\s+/).length : 0).toLocaleString() + ' words';
 }
 
 
-// ── Save via Apps Script ──
+// ── Apps Script bridge ──
 
 async function callScript(payload) {
   var url = $('scriptUrl').value.trim();
@@ -475,40 +643,6 @@ async function callScript(payload) {
   return data;
 }
 
-async function saveToFolder() {
-  var transcript = $('ta').value.trim();
-  if (!transcript) { toast('Nothing to save', 'warn'); return; }
-
-  var folderId = $('folderId').value.trim();
-  if (!folderId) { toast('Add a Google Drive Folder ID in Settings', 'err'); toggleSettings(); return; }
-
-  var btn = $('saveFolderBtn');
-  btn.disabled = true;
-  var origText = btn.textContent;
-  btn.textContent = '💾 Saving…';
-
-  try {
-    var result = await callScript({
-      action: 'createTxtFile',
-      folderId: folderId,
-      filename: $('outName').value.trim() || undefined,
-      summary: $('summary').value.trim(),
-      transcript: transcript
-    });
-
-    addSavedChip('✓ ' + result.fileName, result.fileUrl);
-    toast('Saved: ' + result.fileName, 'ok');
-    if (result.fileUrl) window.open(result.fileUrl, '_blank');
-
-  } catch (err) {
-    console.error(err);
-    toast('Save failed: ' + err.message, 'err');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = origText;
-  }
-}
-
 async function saveToDoc() {
   var text = $('ta').value.trim();
   if (!text) { toast('Nothing to save', 'warn'); return; }
@@ -518,36 +652,27 @@ async function saveToDoc() {
 
   var btn = $('saveDocBtn');
   btn.disabled = true;
-  var origText = btn.textContent;
+  var orig = btn.textContent;
   btn.textContent = '📄 Saving…';
 
   try {
+    var name = queue.length === 1 ? queue[0].file.name.replace(/\.[^.]+$/, '') : undefined;
     var result = await callScript({
       action: 'addSection',
       docId: docId,
       text: text,
-      tabName: $('outName').value.trim() || undefined
+      tabName: name
     });
 
-    addSavedChip('✓ ' + result.tabName, result.docUrl);
     toast('Appended: ' + result.tabName, 'ok');
     if (result.docUrl) window.open(result.docUrl, '_blank');
-
   } catch (err) {
     console.error(err);
     toast('Save failed: ' + err.message, 'err');
   } finally {
     btn.disabled = false;
-    btn.textContent = origText;
+    btn.textContent = orig;
   }
-}
-
-function addSavedChip(label, url) {
-  var chip = document.createElement(url ? 'a' : 'span');
-  chip.className = 'chip new';
-  chip.textContent = label;
-  if (url) { chip.href = url; chip.target = '_blank'; }
-  $('savedList').prepend(chip);
 }
 
 
@@ -563,8 +688,12 @@ function toast(msg, type) {
   toastTimer = setTimeout(function() { el.classList.remove('on'); }, 3500);
 }
 
+
 // ── Init ──
 loadCfg();
+var savedFolder = localStorage.getItem('t_folderInput');
+if (savedFolder) $('folderInput').value = savedFolder;
+onFolderInput();
 </script>
 </body>
 </html>
