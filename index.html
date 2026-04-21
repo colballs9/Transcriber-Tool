@@ -348,7 +348,7 @@ async function uploadToAssemblyAI(f, key) {
 async function submitTranscription(audioUrl, key) {
   var body = {
     audio_url: audioUrl,
-    speech_model: 'universal',
+    speech_models: ['universal-2'],
     speaker_labels: true,
     summarization: true,
     summary_model: 'informative',
