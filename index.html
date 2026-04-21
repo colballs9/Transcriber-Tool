@@ -46,10 +46,9 @@
   .field { margin-bottom:1rem; }
   .field:last-child { margin-bottom:0; }
   .field label { display:block; font:500 0.8rem var(--sans); color:var(--text-2); margin-bottom:0.3rem; }
-  .field input, .field select { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.55rem 0.75rem; border-radius:6px; font:400 0.82rem var(--mono); outline:none; transition:border-color 0.15s; }
-  .field input:focus, .field select:focus { border-color:var(--blue); }
+  .field input, .field select, .field textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.55rem 0.75rem; border-radius:6px; font:400 0.82rem var(--mono); outline:none; transition:border-color 0.15s; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color:var(--blue); }
   .field .hint { font-size:0.72rem; color:var(--text-3); margin-top:0.25rem; }
-  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
 
   .save-cfg { margin-top:0.5rem; padding:0.5rem 1.1rem; background:var(--blue-dim); color:var(--blue); border:1px solid transparent; border-radius:var(--r); font:600 0.82rem var(--sans); cursor:pointer; transition:0.15s; }
   .save-cfg:hover { background:var(--blue); color:#fff; }
@@ -70,19 +69,22 @@
   .fb .rm { background:none; border:none; color:var(--text-3); font-size:1.2rem; cursor:pointer; padding:0.2rem 0.4rem; border-radius:4px; transition:0.15s; }
   .fb .rm:hover { color:var(--red); background:var(--red-dim); }
 
-  .tab-name-row { display:none; align-items:center; gap:0.6rem; margin-top:0.8rem; }
-  .tab-name-row.on { display:flex; }
-  .tab-name-row label { font:500 0.8rem var(--sans); color:var(--text-2); white-space:nowrap; }
-  .tab-name-row input { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.7rem; border-radius:6px; font:400 0.85rem var(--sans); outline:none; }
-  .tab-name-row input:focus { border-color:var(--blue); }
+  .name-row { display:none; align-items:center; gap:0.6rem; margin-top:0.8rem; }
+  .name-row.on { display:flex; }
+  .name-row label { font:500 0.8rem var(--sans); color:var(--text-2); white-space:nowrap; }
+  .name-row input { flex:1; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:0.5rem 0.7rem; border-radius:6px; font:400 0.85rem var(--sans); outline:none; }
+  .name-row input:focus { border-color:var(--blue); }
 
   .btn-go { width:100%; margin-top:1rem; padding:0.8rem; background:var(--blue); color:#fff; border:none; border-radius:var(--r); font:700 0.9rem var(--sans); cursor:pointer; transition:0.15s; }
   .btn-go:hover:not(:disabled) { filter:brightness(1.12); transform:translateY(-1px); }
   .btn-go:disabled { opacity:0.35; cursor:not-allowed; }
 
-  .btn-green { padding:0.65rem 1.2rem; background:var(--green); color:#111; border:none; border-radius:var(--r); font:600 0.85rem var(--sans); cursor:pointer; transition:0.15s; flex:1; }
-  .btn-green:hover:not(:disabled) { filter:brightness(1.1); }
-  .btn-green:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-save { flex:1; padding:0.7rem 1rem; border:none; border-radius:var(--r); font:600 0.85rem var(--sans); cursor:pointer; transition:0.15s; white-space:nowrap; }
+  .btn-save:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn-save.primary { background:var(--green); color:#111; }
+  .btn-save.primary:hover:not(:disabled) { filter:brightness(1.1); }
+  .btn-save.secondary { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+  .btn-save.secondary:hover:not(:disabled) { border-color:var(--blue); }
 
   .btn-out { padding:0.6rem 1rem; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:var(--r); font:500 0.82rem var(--sans); cursor:pointer; transition:0.15s; white-space:nowrap; }
   .btn-out:hover { border-color:var(--blue); }
@@ -98,14 +100,17 @@
   .ed-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.6rem; }
   .ed-top h2 { font-size:1rem; font-weight:600; }
   .wc { font:400 0.75rem var(--mono); color:var(--text-3); }
-  .ed textarea { width:100%; min-height:280px; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:1.1rem; border-radius:var(--rl); font:400 0.9rem var(--sans); line-height:1.75; resize:vertical; outline:none; transition:border-color 0.15s; }
+  .ed textarea { width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:1.1rem; border-radius:var(--rl); font:400 0.9rem var(--sans); line-height:1.75; resize:vertical; outline:none; transition:border-color 0.15s; }
   .ed textarea:focus { border-color:var(--blue); }
+  #summary { min-height:90px; margin-bottom:1.25rem; }
+  #ta { min-height:280px; }
   .ed-actions { display:flex; gap:0.6rem; margin-top:1rem; }
   .ed-row2 { display:flex; gap:0.5rem; margin-top:0.6rem; justify-content:flex-end; }
 
-  .tab-list { margin-top:0.8rem; }
-  .tab-list .chip { display:inline-block; background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:0.3rem 0.7rem; border-radius:20px; font:400 0.75rem var(--sans); margin:0.2rem 0.3rem 0.2rem 0; }
-  .tab-list .chip.new { border-color:var(--green); color:var(--green); }
+  .saved-list { margin-top:0.8rem; }
+  .saved-list .chip { display:inline-block; background:var(--surface-2); border:1px solid var(--border); color:var(--text-2); padding:0.3rem 0.7rem; border-radius:20px; font:400 0.75rem var(--sans); margin:0.2rem 0.3rem 0.2rem 0; }
+  .saved-list .chip.new { border-color:var(--green); color:var(--green); cursor:pointer; }
+  .saved-list .chip.new:hover { background:var(--green-dim); }
 
   .toast { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface-2); border:1px solid var(--border); padding:0.7rem 1.4rem; border-radius:var(--r); font:500 0.85rem var(--sans); opacity:0; transition:0.25s ease; z-index:100; white-space:nowrap; pointer-events:none; }
   .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
@@ -115,7 +120,6 @@
 
   @media(max-width:600px) {
     body { padding:1rem; }
-    .two-col { grid-template-columns:1fr; }
     .ed-actions { flex-direction:column; }
   }
 </style>
@@ -135,33 +139,29 @@
   <div class="panel" id="settingsPanel">
     <div class="panel-label">Configuration</div>
     <div class="field">
-      <label>OpenAI API Key</label>
-      <input type="password" id="apiKey" placeholder="sk-..." />
-      <div class="hint">Used client-side only — never sent to Apps Script.</div>
+      <label>AssemblyAI API Key</label>
+      <input type="password" id="apiKey" placeholder="Your AssemblyAI key" />
+      <div class="hint">Used client-side only — sent directly to AssemblyAI.</div>
     </div>
-    <div class="two-col">
-      <div class="field">
-        <label>Whisper Model</label>
-        <select id="model">
-          <option value="whisper-1">whisper-1</option>
-          <option value="gpt-4o-mini-transcribe">gpt-4o-mini-transcribe</option>
-          <option value="gpt-4o-transcribe">gpt-4o-transcribe</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Language (optional)</label>
-        <input type="text" id="lang" placeholder="en, es, fr..." />
-        <div class="hint">ISO 639-1. Blank = auto.</div>
-      </div>
+    <div class="field">
+      <label>Language (optional)</label>
+      <input type="text" id="lang" placeholder="en, es, fr..." />
+      <div class="hint">ISO 639-1 code. Blank = auto-detect.</div>
     </div>
     <hr style="border:none;border-top:1px solid var(--border);margin:1.1rem 0;">
     <div class="field">
       <label>Apps Script Web App URL</label>
       <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      <div class="hint">Backend that handles saving to Google Doc / Drive folder.</div>
     </div>
     <div class="field">
-      <label>Google Doc ID</label>
-      <input type="text" id="docId" placeholder="Paste the doc ID from the URL" />
+      <label>Google Drive Folder ID (optional)</label>
+      <input type="text" id="folderId" placeholder="Destination folder for .txt output" />
+      <div class="hint">From: drive.google.com/drive/folders/<strong>[THIS_PART]</strong></div>
+    </div>
+    <div class="field">
+      <label>Google Doc ID (optional)</label>
+      <input type="text" id="docId" placeholder="Destination doc for appended sections" />
       <div class="hint">From: docs.google.com/document/d/<strong>[THIS_PART]</strong>/edit</div>
     </div>
     <button class="save-cfg" onclick="saveSettings()">Save Settings</button>
@@ -171,7 +171,7 @@
   <div class="dz" id="dz">
     <div class="ic">📂</div>
     <p>Drop audio here or <strong>browse</strong></p>
-    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — up to 25 MB direct, larger files auto-split</div>
+    <div class="fmt">mp3 · wav · m4a · flac · ogg · webm · mp4 — up to 2.2 GB, 10 hrs max</div>
   </div>
   <input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.wav,.m4a,.flac,.ogg,.webm,.mp4" />
 
@@ -184,9 +184,9 @@
     <button class="rm" onclick="clearFile()">&times;</button>
   </div>
 
-  <div class="tab-name-row" id="tabNameRow">
-    <label>Tab name:</label>
-    <input type="text" id="tabName" placeholder="Auto-generated from filename + timestamp" />
+  <div class="name-row" id="nameRow">
+    <label>Name:</label>
+    <input type="text" id="outName" placeholder="Used as filename / doc section heading" />
   </div>
 
   <button class="btn-go" id="goBtn" disabled onclick="transcribe()">Transcribe</button>
@@ -200,14 +200,21 @@
   <!-- Editor -->
   <div class="ed" id="ed">
     <div class="ed-top">
+      <h2>Summary</h2>
+    </div>
+    <textarea id="summary" placeholder="Summary will appear here…"></textarea>
+
+    <div class="ed-top">
       <h2>Transcript</h2>
       <span class="wc" id="wc">0 words</span>
     </div>
     <textarea id="ta" oninput="countWords()"></textarea>
+
     <div class="ed-actions">
-      <button class="btn-green" id="saveBtn" onclick="saveTab()">📄 Save as New Tab in Doc</button>
+      <button class="btn-save primary" id="saveFolderBtn" onclick="saveToFolder()">💾 Save .txt to Drive Folder</button>
+      <button class="btn-save secondary" id="saveDocBtn" onclick="saveToDoc()">📄 Append to Google Doc</button>
     </div>
-    <div class="tab-list" id="tabList"></div>
+    <div class="saved-list" id="savedList"></div>
     <div class="ed-row2">
       <button class="btn-out" onclick="copyText()">📋 Copy</button>
       <button class="btn-out" onclick="downloadTxt()">⬇ Download .txt</button>
@@ -217,157 +224,17 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- No external dependencies — uses Web Audio API for decode/split/encode -->
-
 <script>
 // ── Globals ──
 var $ = function(id) { return document.getElementById(id); };
-var WHISPER_MAX = 24 * 1024 * 1024;   // 24 MB (stay under Whisper's 25 MB limit)
-var SEG_DURATION = 10 * 60;            // 10 minutes per segment
 var file = null;
-
-// ── Whisper-supported formats (send directly, no conversion needed) ──
-
-var WHISPER_FORMATS = ['mp3','mp4','mpeg','mpga','m4a','wav','webm','flac','ogg'];
-
-function isWhisperFormat(filename) {
-  var ext = (filename || '').split('.').pop().toLowerCase();
-  return WHISPER_FORMATS.indexOf(ext) >= 0;
-}
-
-
-// ── Web Audio: decode → resample → segment → WAV encode ──
-
-async function prepareSegments(inputFile) {
-  // Small file in a Whisper-friendly format → send as-is
-  if (inputFile.size <= WHISPER_MAX && isWhisperFormat(inputFile.name)) {
-    return [inputFile];
-  }
-
-  prg(5, 'Decoding audio…');
-  var arrayBuffer = await inputFile.arrayBuffer();
-  var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  var decoded;
-  try {
-    decoded = await audioCtx.decodeAudioData(arrayBuffer);
-  } catch (err) {
-    throw new Error('Browser cannot decode this format. Try converting to mp3 first.');
-  } finally {
-    audioCtx.close();
-  }
-
-  // Resample to 16 kHz mono (~1.92 MB/min as 16-bit WAV)
-  prg(12, 'Resampling to 16 kHz mono…');
-  var mono16k = await resampleAudio(decoded, 16000, 1);
-
-  // Single WAV fits? (header 44 bytes + samples × 2 bytes)
-  var wavSize = 44 + mono16k.length * 2;
-  if (wavSize <= WHISPER_MAX) {
-    prg(20, 'Encoding WAV…');
-    return [new File([audioBufferToWav(mono16k)], 'audio.wav', { type: 'audio/wav' })];
-  }
-
-  // Split into time-based segments
-  var sampleRate  = mono16k.sampleRate;
-  var segSamples  = SEG_DURATION * sampleRate;
-  var totalSamples = mono16k.length;
-  var segments = [];
-  var offset = 0;
-  var idx = 0;
-
-  while (offset < totalSamples) {
-    var end = Math.min(offset + segSamples, totalSamples);
-    idx++;
-    prg(20 + Math.round((offset / totalSamples) * 50),
-        'Encoding segment ' + idx + '…');
-
-    var sliced = sliceAudioBuffer(mono16k, offset, end);
-    var wavBlob = audioBufferToWav(sliced);
-    segments.push(new File([wavBlob], 'seg_' + idx + '.wav', { type: 'audio/wav' }));
-    offset = end;
-  }
-
-  return segments;
-}
-
-async function resampleAudio(audioBuffer, targetRate, targetChannels) {
-  var frames = Math.ceil(audioBuffer.duration * targetRate);
-  var offlineCtx = new OfflineAudioContext(targetChannels, frames, targetRate);
-  var src = offlineCtx.createBufferSource();
-  src.buffer = audioBuffer;
-  src.connect(offlineCtx.destination);
-  src.start(0);
-  return await offlineCtx.startRendering();
-}
-
-function sliceAudioBuffer(buf, startSample, endSample) {
-  var len = endSample - startSample;
-  var sliced = new AudioBuffer({
-    numberOfChannels: buf.numberOfChannels,
-    length: len,
-    sampleRate: buf.sampleRate
-  });
-  for (var ch = 0; ch < buf.numberOfChannels; ch++) {
-    var src = buf.getChannelData(ch);
-    var dst = sliced.getChannelData(ch);
-    // Fast typed-array copy
-    dst.set(src.subarray(startSample, endSample));
-  }
-  return sliced;
-}
-
-function audioBufferToWav(buf) {
-  var numCh   = buf.numberOfChannels;
-  var rate    = buf.sampleRate;
-  var samples = buf.length;
-  var bps     = 16;
-  var block   = numCh * (bps / 8);
-  var dataLen = samples * block;
-  var total   = 44 + dataLen;
-
-  var ab   = new ArrayBuffer(total);
-  var view = new DataView(ab);
-
-  // ── RIFF / WAV header ──
-  _wStr(view, 0,  'RIFF');
-  view.setUint32(4,  total - 8, true);
-  _wStr(view, 8,  'WAVE');
-  _wStr(view, 12, 'fmt ');
-  view.setUint32(16, 16, true);            // fmt chunk size
-  view.setUint16(20, 1,  true);            // PCM
-  view.setUint16(22, numCh, true);
-  view.setUint32(24, rate, true);
-  view.setUint32(28, rate * block, true);   // byte rate
-  view.setUint16(32, block, true);
-  view.setUint16(34, bps, true);
-  _wStr(view, 36, 'data');
-  view.setUint32(40, dataLen, true);
-
-  // ── Interleaved 16-bit PCM samples ──
-  var chData = [];
-  for (var c = 0; c < numCh; c++) chData.push(buf.getChannelData(c));
-
-  var off = 44;
-  for (var i = 0; i < samples; i++) {
-    for (var c = 0; c < numCh; c++) {
-      var s = chData[c][i];
-      s = s < -1 ? -1 : s > 1 ? 1 : s;
-      view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-      off += 2;
-    }
-  }
-  return new Blob([ab], { type: 'audio/wav' });
-}
-
-function _wStr(view, offset, str) {
-  for (var i = 0; i < str.length; i++)
-    view.setUint8(offset + i, str.charCodeAt(i));
-}
+var POLL_INTERVAL_MS = 5000;
+var POLL_MAX_ATTEMPTS = 480;  // 40 minutes at 5s intervals — enough for ~10hr audio
 
 
 // ── Settings ──
 
-var CFGKEYS = ['apiKey', 'model', 'lang', 'scriptUrl', 'docId'];
+var CFGKEYS = ['apiKey', 'lang', 'scriptUrl', 'folderId', 'docId'];
 
 function loadCfg() {
   CFGKEYS.forEach(function(k) {
@@ -406,24 +273,24 @@ function pick(f) {
   $('fn').textContent = f.name;
   $('fm').textContent = mb + ' MB';
   $('fb').classList.add('on');
-  $('tabNameRow').classList.add('on');
+  $('nameRow').classList.add('on');
   $('goBtn').disabled = false;
-  $('tabName').value = f.name.replace(/\.[^.]+$/, '');
+  $('outName').value = f.name.replace(/\.[^.]+$/, '');
 }
 
 function clearFile() {
   file = null; $('fi').value = '';
   $('fb').classList.remove('on');
-  $('tabNameRow').classList.remove('on');
+  $('nameRow').classList.remove('on');
   $('goBtn').disabled = true;
 }
 
 
-// ── Transcription ──
+// ── AssemblyAI transcription ──
 
 async function transcribe() {
   var key = $('apiKey').value.trim();
-  if (!key) { toast('Add your OpenAI API key in Settings', 'err'); toggleSettings(); return; }
+  if (!key) { toast('Add your AssemblyAI API key in Settings', 'err'); toggleSettings(); return; }
   if (!file) return;
 
   $('goBtn').disabled = true;
@@ -431,26 +298,25 @@ async function transcribe() {
   $('prog').classList.add('on');
 
   try {
-    // Decode, resample, and segment if needed (Web Audio API — no dependencies)
-    var segments = await prepareSegments(file);
-    prg(30, segments.length + ' segment' + (segments.length > 1 ? 's' : '') + ' ready');
+    prg(5, 'Uploading audio to AssemblyAI…');
+    var audioUrl = await uploadToAssemblyAI(file, key);
 
-    // Transcribe each segment
-    var fullText = '';
-    for (var i = 0; i < segments.length; i++) {
-      var pct = 30 + Math.round(((i + 0.5) / segments.length) * 65);
-      var sizeMB = (segments[i].size / 1048576).toFixed(1);
-      prg(pct, 'Transcribing segment ' + (i+1) + '/' + segments.length + ' (' + sizeMB + ' MB)…');
+    prg(25, 'Submitting transcription job…');
+    var transcriptId = await submitTranscription(audioUrl, key);
 
-      var t = await callWhisper(segments[i], key, i > 0);
-      fullText += (fullText ? ' ' : '') + t;
-    }
+    var result = await pollTranscription(transcriptId, key);
 
     prg(100, 'Complete');
-    $('ta').value = fullText;
+
+    $('ta').value = formatTranscript(result);
+    $('summary').value = (result.summary || '').trim();
     $('ed').classList.add('on');
     countWords();
-    toast('Transcription complete', 'ok');
+
+    var speakerCount = countSpeakers(result);
+    var msg = 'Transcription complete';
+    if (speakerCount > 1) msg += ' — ' + speakerCount + ' speakers detected';
+    toast(msg, 'ok');
 
   } catch (err) {
     console.error(err);
@@ -461,28 +327,97 @@ async function transcribe() {
   }
 }
 
-async function callWhisper(f, key, isContinuation) {
-  var fd = new FormData();
-  fd.append('file', f);
-  fd.append('model', $('model').value || 'whisper-1');
-  fd.append('response_format', 'text');
-
-  var lang = $('lang').value.trim();
-  if (lang) fd.append('language', lang);
-  if (isContinuation) fd.append('prompt', '...');
-
-  var res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+async function uploadToAssemblyAI(f, key) {
+  var res = await fetch('https://api.assemblyai.com/v2/upload', {
     method: 'POST',
-    headers: { Authorization: 'Bearer ' + key },
-    body: fd
+    headers: {
+      'Authorization': key,
+      'Content-Type': 'application/octet-stream'
+    },
+    body: f
   });
-
   if (!res.ok) {
     var e = await res.text();
-    throw new Error('Whisper ' + res.status + ': ' + e.slice(0, 300));
+    throw new Error('Upload failed ' + res.status + ': ' + e.slice(0, 300));
   }
-  return (await res.text()).trim();
+  var data = await res.json();
+  if (!data.upload_url) throw new Error('AssemblyAI did not return an upload URL');
+  return data.upload_url;
 }
+
+async function submitTranscription(audioUrl, key) {
+  var body = {
+    audio_url: audioUrl,
+    speech_model: 'universal',
+    speaker_labels: true,
+    summarization: true,
+    summary_model: 'informative',
+    summary_type: 'paragraph'
+  };
+  var lang = $('lang').value.trim();
+  if (lang) body.language_code = lang;
+
+  var res = await fetch('https://api.assemblyai.com/v2/transcript', {
+    method: 'POST',
+    headers: {
+      'Authorization': key,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    var e = await res.text();
+    throw new Error('Submit failed ' + res.status + ': ' + e.slice(0, 300));
+  }
+  var data = await res.json();
+  if (!data.id) throw new Error('AssemblyAI did not return a transcript ID');
+  return data.id;
+}
+
+async function pollTranscription(id, key) {
+  var url = 'https://api.assemblyai.com/v2/transcript/' + id;
+
+  for (var i = 0; i < POLL_MAX_ATTEMPTS; i++) {
+    await sleep(POLL_INTERVAL_MS);
+
+    var res = await fetch(url, { headers: { 'Authorization': key } });
+    if (!res.ok) {
+      var e = await res.text();
+      throw new Error('Poll failed ' + res.status + ': ' + e.slice(0, 300));
+    }
+    var data = await res.json();
+
+    if (data.status === 'completed') return data;
+    if (data.status === 'error') throw new Error('Transcription failed: ' + data.error);
+
+    // Ramp progress 30 → 95 across polls, capped
+    var pct = Math.min(30 + i * 2, 95);
+    prg(pct, 'Transcribing… (' + data.status + ')');
+  }
+
+  throw new Error('Transcription timed out after ' + (POLL_MAX_ATTEMPTS * POLL_INTERVAL_MS / 60000) + ' minutes');
+}
+
+function formatTranscript(result) {
+  var utterances = result.utterances;
+  if (!utterances || utterances.length === 0) return (result.text || '').trim();
+
+  var speakerCount = countSpeakers(result);
+  if (speakerCount <= 1) return (result.text || '').trim();
+
+  return utterances.map(function(u) {
+    return 'Speaker ' + u.speaker + ': ' + u.text;
+  }).join('\n\n');
+}
+
+function countSpeakers(result) {
+  if (!result.utterances) return 0;
+  var speakers = {};
+  result.utterances.forEach(function(u) { speakers[u.speaker] = true; });
+  return Object.keys(speakers).length;
+}
+
+function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
 
 function prg(pct, msg) {
   if (pct !== null) $('pf').style.width = pct + '%';
@@ -490,7 +425,7 @@ function prg(pct, msg) {
 }
 
 
-// ── Editor ──
+// ── Editor helpers ──
 
 function countWords() {
   var t = $('ta').value.trim();
@@ -503,17 +438,27 @@ function copyText() {
 }
 
 function downloadTxt() {
-  var name = file ? file.name.replace(/\.[^.]+$/, '') + '_transcript.txt' : 'transcript.txt';
+  var name = ($('outName').value.trim() || 'transcript') + '.txt';
+  var body = buildTxtBody();
   var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([$('ta').value], { type: 'text/plain' }));
+  a.href = URL.createObjectURL(new Blob([body], { type: 'text/plain' }));
   a.download = name;
   a.click();
   URL.revokeObjectURL(a.href);
   toast('Downloaded', 'ok');
 }
 
+function buildTxtBody() {
+  var summary = $('summary').value.trim();
+  var transcript = $('ta').value.trim();
+  return 'SUMMARY\n\n' +
+    (summary || '(No summary generated)') +
+    '\n\n---\n\nTRANSCRIPT\n\n' +
+    transcript;
+}
 
-// ── Save to Google Doc tab via Apps Script ──
+
+// ── Save via Apps Script ──
 
 async function callScript(payload) {
   var url = $('scriptUrl').value.trim();
@@ -530,32 +475,62 @@ async function callScript(payload) {
   return data;
 }
 
-async function saveTab() {
+async function saveToFolder() {
+  var transcript = $('ta').value.trim();
+  if (!transcript) { toast('Nothing to save', 'warn'); return; }
+
+  var folderId = $('folderId').value.trim();
+  if (!folderId) { toast('Add a Google Drive Folder ID in Settings', 'err'); toggleSettings(); return; }
+
+  var btn = $('saveFolderBtn');
+  btn.disabled = true;
+  var origText = btn.textContent;
+  btn.textContent = '💾 Saving…';
+
+  try {
+    var result = await callScript({
+      action: 'createTxtFile',
+      folderId: folderId,
+      filename: $('outName').value.trim() || undefined,
+      summary: $('summary').value.trim(),
+      transcript: transcript
+    });
+
+    addSavedChip('✓ ' + result.fileName, result.fileUrl);
+    toast('Saved: ' + result.fileName, 'ok');
+    if (result.fileUrl) window.open(result.fileUrl, '_blank');
+
+  } catch (err) {
+    console.error(err);
+    toast('Save failed: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+async function saveToDoc() {
   var text = $('ta').value.trim();
   if (!text) { toast('Nothing to save', 'warn'); return; }
 
   var docId = $('docId').value.trim();
-  if (!docId) { toast('Add your Google Doc ID in Settings', 'err'); toggleSettings(); return; }
+  if (!docId) { toast('Add a Google Doc ID in Settings', 'err'); toggleSettings(); return; }
 
-  var tabName = $('tabName').value.trim() || undefined;
-  var btn = $('saveBtn');
+  var btn = $('saveDocBtn');
   btn.disabled = true;
+  var origText = btn.textContent;
   btn.textContent = '📄 Saving…';
 
   try {
     var result = await callScript({
-      action: 'addTab',
+      action: 'addSection',
       docId: docId,
       text: text,
-      tabName: tabName
+      tabName: $('outName').value.trim() || undefined
     });
 
-    var chip = document.createElement('span');
-    chip.className = 'chip new';
-    chip.textContent = '✓ ' + result.tabName;
-    $('tabList').prepend(chip);
-
-    toast('Tab created: ' + result.tabName, 'ok');
+    addSavedChip('✓ ' + result.tabName, result.docUrl);
+    toast('Appended: ' + result.tabName, 'ok');
     if (result.docUrl) window.open(result.docUrl, '_blank');
 
   } catch (err) {
@@ -563,8 +538,16 @@ async function saveTab() {
     toast('Save failed: ' + err.message, 'err');
   } finally {
     btn.disabled = false;
-    btn.textContent = '📄 Save as New Tab in Doc';
+    btn.textContent = origText;
   }
+}
+
+function addSavedChip(label, url) {
+  var chip = document.createElement(url ? 'a' : 'span');
+  chip.className = 'chip new';
+  chip.textContent = label;
+  if (url) { chip.href = url; chip.target = '_blank'; }
+  $('savedList').prepend(chip);
 }
 
 
